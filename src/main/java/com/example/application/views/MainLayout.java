@@ -3,6 +3,7 @@ package com.example.application.views;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
@@ -12,7 +13,8 @@ import java.util.List;
 
 @Route("")
 public class MainLayout extends VerticalLayout {
-
+    //private static final long serialVersionUID = 1L;
+    // ??? ^ FOR IMAGE BUT DOESN'T WORK
     public MainLayout() {
 
         // page header
@@ -43,6 +45,11 @@ public class MainLayout extends VerticalLayout {
         // Game Section, Deal Cards and whatnot
 
         // TO DO ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Image image = new Image("images/queen_of_spades.png", "Card");
+        image.setWidth("100px");
+        add(image);
+        // Image image = new Image("images/myimage.png", "My Alt Image");
+        // add(image);
 
         // Recommendation, Win Probability, Bet Size Projection
 
