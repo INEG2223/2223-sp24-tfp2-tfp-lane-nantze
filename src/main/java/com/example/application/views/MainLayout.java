@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
@@ -46,7 +47,7 @@ public class MainLayout extends VerticalLayout {
 
         // TO DO ~~~~~~~~~~~~~~~~~~~~~~~~~~
         Image image = new Image("images/queen_of_spades.png", "Card");
-        image.setWidth("100px");
+        image.setSizeFull();
         add(image);
         // Image image = new Image("images/myimage.png", "My Alt Image");
         // add(image);
