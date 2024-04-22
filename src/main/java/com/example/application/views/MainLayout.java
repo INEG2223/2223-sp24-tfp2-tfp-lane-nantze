@@ -16,7 +16,9 @@ import java.util.List;
 @Route("")
 public class MainLayout extends VerticalLayout {
 
-    private ArrayList<Card> deck;
+    private ArrayList<Card> deck = new ArrayList<>();
+    private int runCount;
+    private int trueCount;
 
     public MainLayout() {
 
@@ -125,9 +127,64 @@ public class MainLayout extends VerticalLayout {
 
             String value = deck.get(0).getValue();
             String suit = deck.get(0).getSuit();
+            String value2 = deck.get(1).getValue();
+            String suit2 = deck.get(1).getSuit();
+            String value3 = deck.get(2).getValue();
+            String suit3 = deck.get(2).getSuit();
+            String value4 = deck.get(3).getValue();
+            String suit4 = deck.get(3).getSuit();
 
-            // FIGURE OUT HOW TO ADD CARDS
+            String cardImage1 = value + "_of_" + suit + ".png";
+            String cardImage2 = value2 + "_of_" + suit2 + ".png";
+            String cardImage3 = value3 + "_of_" + suit3 + ".png";
+            String cardImage4 = value4 + "_of_" + suit4 + ".png";
 
+            // give first card to playerHandDealt
+            Image image1 = new Image(cardImage1, "Card");
+            image1.setWidth("100px");
+            // image1.getStyle().set("margin-left", "-90px");
+            playerHandDealt.add(image1);
+
+            // give first card to dealerHandDealt
+            Image image2 = new Image(cardImage2, "Card");
+            image2.setWidth("100px");
+            // image2.getStyle().set("margin-left", "-90px");
+            dealerHandDealt.add(image2);
+
+            // give second card to playerHandDealt
+            Image image3 = new Image(cardImage3, "Card");
+            image3.setWidth("100px");
+            // image3.getStyle().set("margin-left", "-90px");
+            playerHandDealt.add(image3);
+
+            // give first card to dealerHandDealt
+            Image image4 = new Image(cardImage4, "Card");
+            image4.setWidth("100px");
+            // image4.getStyle().set("margin-left", "-90px");
+
+            // remove 4 cards from deck
+            deck.remove(0);
+            deck.remove(0);
+            deck.remove(0);
+            deck.remove(0);
+
+            // FIGURE OUT WHAT TO DO ABOUT DEALER SECOND CARD
+
+
+            // update counts
+            if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                    || value.equals("ace")) {
+                runCount--;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                    || value.equals("6")) {
+                runCount++;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else {
+                trueCount = runCount / (deck.size() / 52);
+            }
         });
 
 
