@@ -4,6 +4,7 @@ import com.example.application.Card;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -19,6 +20,8 @@ public class MainLayout extends VerticalLayout {
     private ArrayList<Card> deck = new ArrayList<>();
     private int runCount;
     private int trueCount;
+    private int handSum;
+    private int dealerUpCard;
 
     public MainLayout() {
 
@@ -40,6 +43,9 @@ public class MainLayout extends VerticalLayout {
 
             // generates decks
             deckGenerator();
+
+            // initialize handSum, dealerUpCard, and count values
+            handSum = 0; dealerUpCard = 0; trueCount = 0; runCount = 0;
 
         });
 
@@ -72,22 +78,6 @@ public class MainLayout extends VerticalLayout {
         HorizontalLayout bothHandsDealt = new HorizontalLayout(playerHandDealt, dealerHandDealt);
         bothHandsDealt.setWidthFull();
         add(bothHandsDealt);
-
-        // add card images
-        /*
-        Image image = new Image("images/queen_of_spades.png", "Card");
-        image.setWidth("100px");
-        playerHandDealt.add(image);
-        Image image3 = new Image("images/king_of_hearts.png", "Card");
-        image3.setWidth("100px");
-        image3.getStyle().set("margin-left", "-90px");
-        playerHandDealt.add(image3);
-
-        Image image2 = new Image("images/2_of_spades.png", "Card");
-        image2.setWidth("100px");
-        dealerHandDealt.add(image2);
-
-         */
 
         // Recommendation, Win Probability, Bet Size Projection
 
@@ -131,47 +121,103 @@ public class MainLayout extends VerticalLayout {
             String suit2 = deck.get(1).getSuit();
             String value3 = deck.get(2).getValue();
             String suit3 = deck.get(2).getSuit();
-            String value4 = deck.get(3).getValue();
-            String suit4 = deck.get(3).getSuit();
+            // String value4 = deck.get(3).getValue();
+            // String suit4 = deck.get(3).getSuit();
 
-            String cardImage1 = value + "_of_" + suit + ".png";
-            String cardImage2 = value2 + "_of_" + suit2 + ".png";
-            String cardImage3 = value3 + "_of_" + suit3 + ".png";
-            String cardImage4 = value4 + "_of_" + suit4 + ".png";
+            String cardImage1 = "images/" + value + "_of_" + suit + ".png";
+            String cardImage2 = "images/" + value2 + "_of_" + suit2 + ".png";
+            String cardImage3 = "images/" + value3 + "_of_" + suit3 + ".png";
+            // String cardImage4 = "images/" + value4 + "_of_" + suit4 + ".png";
 
             // give first card to playerHandDealt
             Image image1 = new Image(cardImage1, "Card");
             image1.setWidth("100px");
-            // image1.getStyle().set("margin-left", "-90px");
             playerHandDealt.add(image1);
 
             // give first card to dealerHandDealt
             Image image2 = new Image(cardImage2, "Card");
             image2.setWidth("100px");
-            // image2.getStyle().set("margin-left", "-90px");
             dealerHandDealt.add(image2);
 
             // give second card to playerHandDealt
             Image image3 = new Image(cardImage3, "Card");
             image3.setWidth("100px");
-            // image3.getStyle().set("margin-left", "-90px");
+            image3.getStyle().set("margin-left", "-80px");
             playerHandDealt.add(image3);
 
-            // give first card to dealerHandDealt
+            // give second card to dealerHandDealt face down
+            /*
             Image image4 = new Image(cardImage4, "Card");
             image4.setWidth("100px");
-            // image4.getStyle().set("margin-left", "-90px");
+            image4.getStyle().set("margin-left", "-80px");
+            */
+            // we will actually give dealer's second card after player's actions
+            Image image4 = new Image("images/back_of_card.png", "Card");
+            image4.setWidth("100px");
+            // image4.getStyle().set("margin-left", "-80px");
+            dealerHandDealt.add(image4);
 
-            // remove 4 cards from deck
-            deck.remove(0);
+            // remove 3 cards from deck
             deck.remove(0);
             deck.remove(0);
             deck.remove(0);
 
-            // FIGURE OUT WHAT TO DO ABOUT DEALER SECOND CARD
+            // update dealerUpCard value
+            if (value2.equals("jack") || value2.equals("queen") || value2.equals("king")) {
+                dealerUpCard = 10;
+            }
+            else if (value2.equals("ace")) {
+                dealerUpCard = 11;
+            }
+            else {
+                dealerUpCard = Integer.parseInt(value2);
+            }
 
+            // update handSum value
+
+            // first card
+            if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                handSum = handSum + 10;
+            }
+            else if (value.equals("ace")) {
+                handSum = handSum + 11;
+            }
+            else {
+                handSum = handSum + Integer.parseInt(value);
+            }
+            // second card
+            if (value3.equals("jack") || value3.equals("queen") || value3.equals("king")) {
+                handSum = handSum + 10;
+            }
+            else if (value3.equals("ace")) {
+                handSum = handSum + 11;
+            }
+            else {
+                handSum = handSum + Integer.parseInt(value3);
+            }
 
             // update counts
+            ArrayList<String> values = new ArrayList<>();
+            values.add(value); values.add(value2); values.add(value3);
+
+            for (int i = 0; i < values.size(); i ++) {
+                if (values.get(i).equals("10") || values.get(i).equals("jack") || values.get(i).equals("queen")
+                        || values.get(i).equals("king") || values.get(i).equals("ace")) {
+                    runCount--;
+                    trueCount = runCount / (deck.size() / 52);
+                }
+                else if (values.get(i).equals("2") || values.get(i).equals("3") || values.get(i).equals("4")
+                        || values.get(i).equals("5") || values.get(i).equals("6")) {
+                    runCount++;
+                    trueCount = runCount / (deck.size() / 52);
+                }
+                else {
+                    trueCount = runCount / (deck.size() / 52);
+                }
+            }
+
+            // count code below
+            /*
             if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
                     || value.equals("ace")) {
                 runCount--;
@@ -185,10 +231,32 @@ public class MainLayout extends VerticalLayout {
             else {
                 trueCount = runCount / (deck.size() / 52);
             }
+             */
         });
 
 
         // create reset button???
+
+        // create next hand button
+        // this would reset dealerUpCard, handSum, clear HorizontalLayouts with Cards, etc.
+        // HorizontalLayout for nextHandButton
+        HorizontalLayout hL4 = new HorizontalLayout();
+        Button nextHandButton = new Button("Next Hand");
+        hL4.add(nextHandButton);
+        add(hL4);
+        // click listener for nextHandButton
+        nextHandButton.addClickListener(event -> {
+
+            // clear player and dealer hands from HorizontalLayouts
+            playerHandDealt.removeAll(); dealerHandDealt.removeAll();
+
+            // reset dealerUpCard and handSum values
+            handSum = 0; dealerUpCard = 0;
+            
+        });
+
+
+
 
     }
 
