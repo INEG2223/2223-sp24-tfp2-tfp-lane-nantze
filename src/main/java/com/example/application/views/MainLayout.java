@@ -22,6 +22,9 @@ public class MainLayout extends VerticalLayout {
     private int trueCount;
     private int handSum;
     private int dealerUpCard;
+    private HorizontalLayout dealerHandDealt = new HorizontalLayout();
+    private int dealerHandSum;
+    private Image image4 = new Image("images/back_of_card.png", "Card");
 
     public MainLayout() {
 
@@ -45,7 +48,7 @@ public class MainLayout extends VerticalLayout {
             deckGenerator();
 
             // initialize handSum, dealerUpCard, and count values
-            handSum = 0; dealerUpCard = 0; trueCount = 0; runCount = 0;
+            handSum = 0; dealerUpCard = 0; trueCount = 0; runCount = 0; dealerHandSum = 0;
 
         });
 
@@ -73,7 +76,7 @@ public class MainLayout extends VerticalLayout {
         // HOW TO MAKE 2 HORIZONTAL LAYOUTS SIDE BY SIDE FOR DEALER THEN OUT HANDS
         HorizontalLayout playerHandDealt = new HorizontalLayout();
         playerHandDealt.setWidthFull();
-        HorizontalLayout dealerHandDealt = new HorizontalLayout();
+        //HorizontalLayout dealerHandDealt = new HorizontalLayout();
         dealerHandDealt.setWidthFull();
         HorizontalLayout bothHandsDealt = new HorizontalLayout(playerHandDealt, dealerHandDealt);
         bothHandsDealt.setWidthFull();
@@ -152,9 +155,8 @@ public class MainLayout extends VerticalLayout {
             image4.getStyle().set("margin-left", "-80px");
             */
             // we will actually give dealer's second card after player's actions
-            Image image4 = new Image("images/back_of_card.png", "Card");
-            image4.setWidth("100px");
-            // image4.getStyle().set("margin-left", "-80px");
+            image4.setWidth("95px");
+            image4.getStyle().set("margin-left", "-80px");
             dealerHandDealt.add(image4);
 
             // remove 3 cards from deck
@@ -162,15 +164,18 @@ public class MainLayout extends VerticalLayout {
             deck.remove(0);
             deck.remove(0);
 
-            // update dealerUpCard value
+            // update dealerUpCard value and dealerHandSum
             if (value2.equals("jack") || value2.equals("queen") || value2.equals("king")) {
                 dealerUpCard = 10;
+                dealerHandSum = dealerHandSum + 10;
             }
             else if (value2.equals("ace")) {
                 dealerUpCard = 11;
+                dealerHandSum = dealerHandSum + 11;
             }
             else {
                 dealerUpCard = Integer.parseInt(value2);
+                dealerHandSum = dealerHandSum + Integer.parseInt(value2);
             }
 
             // update handSum value
@@ -234,6 +239,120 @@ public class MainLayout extends VerticalLayout {
              */
         });
 
+        // hitButton clickListener
+        hitButton.addClickListener(event -> {
+
+            // add card to playerHandDealt
+            String value = deck.get(0).getValue();
+            String suit = deck.get(0).getSuit();
+
+            String cardImage = "images/" + value + "_of_" + suit + ".png";
+            Image image = new Image(cardImage, "Card");
+            image.setWidth("100px");
+            image.getStyle().set("margin-left", "-80px");
+            playerHandDealt.add(image);
+
+            // remove one card from deck
+            deck.remove(0);
+
+            // update handSum value
+            if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                handSum = handSum + 10;
+            }
+            else if (value.equals("ace")) {
+                handSum = handSum + 11;
+            }
+            else {
+                handSum = handSum + Integer.parseInt(value);
+            }
+
+            // update counts
+            if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                    || value.equals("ace")) {
+                runCount--;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                    || value.equals("6")) {
+                runCount++;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else {
+                trueCount = runCount / (deck.size() / 52);
+            }
+
+            // see if player busted
+            try {
+                bustOrNot();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+        });
+
+        // standButton clickListener
+        standButton.addClickListener(event -> {
+
+            // remove face down card
+            dealerHandDealt.remove(image4);
+
+            // add cards to dealer
+            dealerHits();
+
+        });
+
+        // doubleButton clickListener
+        doubleButton.addClickListener(event -> {
+            // checks if playerHandDealt only has 2 cards
+            if (playerHandDealt.getComponentCount() == 2) {
+                // add card to playerHandDealt
+                String value = deck.get(0).getValue();
+                String suit = deck.get(0).getSuit();
+
+                String cardImage = "images/" + value + "_of_" + suit + ".png";
+                Image image = new Image(cardImage, "Card");
+                image.setWidth("100px");
+                image.getStyle().set("margin-left", "-80px");
+                playerHandDealt.add(image);
+
+                // remove one card from deck
+                deck.remove(0);
+
+                // update handSum value
+                if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                    handSum = handSum + 10;
+                }
+                else if (value.equals("ace")) {
+                    handSum = handSum + 11;
+                }
+                else {
+                    handSum = handSum + Integer.parseInt(value);
+                }
+
+                // update counts
+                if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                        || value.equals("ace")) {
+                    runCount--;
+                    trueCount = runCount / (deck.size() / 52);
+                }
+                else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                        || value.equals("6")) {
+                    runCount++;
+                    trueCount = runCount / (deck.size() / 52);
+                }
+                else {
+                    trueCount = runCount / (deck.size() / 52);
+                }
+
+                // see if player busted
+                try {
+                    bustOrNot();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
 
         // create reset button???
 
@@ -251,13 +370,118 @@ public class MainLayout extends VerticalLayout {
             playerHandDealt.removeAll(); dealerHandDealt.removeAll();
 
             // reset dealerUpCard and handSum values
-            handSum = 0; dealerUpCard = 0;
-            
+            handSum = 0; dealerUpCard = 0; dealerHandSum = 0;
         });
 
 
+    }
 
+    private void bustOrNot() throws InterruptedException {
 
+        // if player's hand is > 21, they busted
+        if (handSum > 21) {
+
+            // wait 2 second to execute
+            // Thread.sleep(2000);
+
+            // add cards to dealer
+            // dealerHits();
+
+            // add card to replace face down card
+            // add card to dealerHandDealt
+            String value = deck.get(0).getValue();
+            String suit = deck.get(0).getSuit();
+
+            String cardImage = "images/" + value + "_of_" + suit + ".png";
+            Image image = new Image(cardImage, "Card");
+            image.setWidth("100px");
+            image.getStyle().set("margin-left", "-116px");
+            dealerHandDealt.add(image);
+
+            // update counts
+            if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                    || value.equals("ace")) {
+                runCount--;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                    || value.equals("6")) {
+                runCount++;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else {
+                trueCount = runCount / (deck.size() / 52);
+            }
+
+            // update dealerHandSum
+            if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                dealerHandSum = dealerHandSum + 10;
+            }
+            else if (value.equals("ace")) {
+                dealerHandSum = dealerHandSum + 11;
+            }
+            else {
+                dealerHandSum = dealerHandSum + Integer.parseInt(value);
+            }
+
+            // remove one card from deck
+            deck.remove(0);
+
+            // GIVE LOGIC TO UPDATE MONEY BALANCE
+            // PLAYER LOST BECAUSE BUSTED
+
+        }
+    }
+
+    private void dealerHits() {
+
+        // DETERMINE IF PLAYER WON OR NOT
+        // UPDATE PLAYER MONEY BALANCE AT END
+
+        while (dealerHandSum < 17) {
+
+            // wait 1 second to execute
+            // Thread.sleep(1000);
+
+            // add card to dealerHandDealt
+            String value = deck.get(0).getValue();
+            String suit = deck.get(0).getSuit();
+
+            String cardImage = "images/" + value + "_of_" + suit + ".png";
+            Image image = new Image(cardImage, "Card");
+            image.setWidth("100px");
+            image.getStyle().set("margin-left", "-80px");
+            dealerHandDealt.add(image);
+
+            // update dealerHandSum
+            if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                dealerHandSum = dealerHandSum + 10;
+            }
+            else if (value.equals("ace")) {
+                dealerHandSum = dealerHandSum + 11;
+            }
+            else {
+                dealerHandSum = dealerHandSum + Integer.parseInt(value);
+            }
+
+            // update counts
+            if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                    || value.equals("ace")) {
+                runCount--;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                    || value.equals("6")) {
+                runCount++;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else {
+                trueCount = runCount / (deck.size() / 52);
+            }
+
+            // remove one card from deck
+            deck.remove(0);
+        }
     }
 
     private void deckGenerator() {
