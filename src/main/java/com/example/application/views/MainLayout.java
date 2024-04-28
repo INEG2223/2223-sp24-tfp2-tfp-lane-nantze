@@ -3,9 +3,7 @@ package com.example.application.views;
 import com.example.application.Card;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
@@ -25,6 +23,34 @@ public class MainLayout extends VerticalLayout {
     private HorizontalLayout dealerHandDealt = new HorizontalLayout();
     private int dealerHandSum;
     private Image image4 = new Image("images/back_of_card.png", "Card");
+    private Image image1 = new Image();
+    private Image image2 = new Image();
+    private Image image3 = new Image();
+    private boolean sameCard;
+    private int splitHandSum;
+    private String value3;
+    private HorizontalLayout dealerHandSumEntry = new HorizontalLayout();
+    private double playerBalance;
+    private String handOutcome;
+    private HorizontalLayout hL1 = new HorizontalLayout();
+    private H4 playerBalanceText = new H4();
+    private boolean BJ;
+    private int betAmount;
+    private boolean doubleOrNot;
+    private boolean splitOrNot;
+    private boolean splitBJ;
+    private boolean splitDoubleOrNot;
+    private int numPlayerAces;
+    private int numDealerAces;
+    private int numSplitAces;
+
+    /*
+    TO DO:
+    - add all the smile stuff near top - don't forget to add for split hand too (hard part)
+    - change bet amt to any value?
+    - add updated counts near top?
+    - dealer hits on soft 17
+     */
 
     public MainLayout() {
 
@@ -35,27 +61,19 @@ public class MainLayout extends VerticalLayout {
 
         // Start Game Button (loads everything in, creates deck, etc)
 
-        // TO DO ~~~~~~~~~~~~~~~~~~~~~
-
         // add Start Game button
         Button startGameButton = new Button("Start Game");
         add(startGameButton);
 
-        // clickListener for startGameButton
-        startGameButton.addClickListener(event -> {
-
-            // generates decks
-            deckGenerator();
-
-            // initialize handSum, dealerUpCard, and count values
-            handSum = 0; dealerUpCard = 0; trueCount = 0; runCount = 0; dealerHandSum = 0;
-
-        });
+        // player's balance (changes after every hand)
+        // start at $0
+        playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
 
         // input for bet amount (unit size)
-        // sizes: $25, $50, $75, $100, $150, $200, $250, $300
+        // sizes: $10, $15, $20, $25, $50, $75, $100, $150, $200, $250, $300
 
         List<Integer> betAmts = new ArrayList<>();
+        betAmts.add(10); betAmts.add(15); betAmts.add(20);
         betAmts.add(25); betAmts.add(50); betAmts.add(75);
         betAmts.add(100); betAmts.add(150); betAmts.add(200);
         betAmts.add(250); betAmts.add(300);
@@ -64,23 +82,71 @@ public class MainLayout extends VerticalLayout {
         betAmtDropdown.setItems(betAmts);
 
         // HorizontalLayout to add Bet Amount to
-        HorizontalLayout hL1 = new HorizontalLayout();
         hL1.add(betAmtDropdown);
         add(hL1);
 
+        // clickListener for startGameButton
+        startGameButton.addClickListener(event -> {
+
+            // generates decks
+            deckGenerator();
+
+            // add balance at top
+            hL1.add(playerBalanceText);
+
+            // initialize handSum, dealerUpCard, count values, etc
+            handSum = 0; dealerUpCard = 0; trueCount = 0; runCount = 0;
+            dealerHandSum = 0; sameCard = false; splitHandSum = 0;
+            playerBalance = 0.00; handOutcome = "push"; BJ = false;
+            betAmount = 0; doubleOrNot = false; splitOrNot = false;
+            splitBJ = false; splitDoubleOrNot = false; numPlayerAces = 0;
+            numDealerAces = 0; numSplitAces = 0;
+
+        });
+
         // Game Section, Dealt Cards and whatnot
 
-        // TO DO ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Vertical Layouts to Pair HandSums with Dealt Cards
+        VerticalLayout playerHandDealtWithHandSum = new VerticalLayout();
+        VerticalLayout dealerHandDealtWithHandSum = new VerticalLayout();
+
+        // HorizontalLayouts to display hand sums
+        HorizontalLayout playerHandSumEntry = new HorizontalLayout();
+        playerHandDealtWithHandSum.add(playerHandSumEntry);
+        // HorizontalLayout dealerHandSumEntry = new HorizontalLayout();
+        dealerHandDealtWithHandSum.add(dealerHandSumEntry);
 
         // HorizontalLayout for cards dealt
-        // HOW TO MAKE 2 HORIZONTAL LAYOUTS SIDE BY SIDE FOR DEALER THEN OUT HANDS
         HorizontalLayout playerHandDealt = new HorizontalLayout();
         playerHandDealt.setWidthFull();
         //HorizontalLayout dealerHandDealt = new HorizontalLayout();
         dealerHandDealt.setWidthFull();
-        HorizontalLayout bothHandsDealt = new HorizontalLayout(playerHandDealt, dealerHandDealt);
+        playerHandDealtWithHandSum.add(playerHandDealt);
+        dealerHandDealtWithHandSum.add(dealerHandDealt);
+        HorizontalLayout bothHandsDealt = new HorizontalLayout(playerHandDealtWithHandSum, dealerHandDealtWithHandSum);
         bothHandsDealt.setWidthFull();
         add(bothHandsDealt);
+
+        // VerticalLayout to hold split hand and split hand sum value
+        VerticalLayout splitHandDealtWithHandSum = new VerticalLayout();
+        // HorizontalLayout to display split hand sum
+        HorizontalLayout splitHandSumEntry = new HorizontalLayout();
+        splitHandDealtWithHandSum.add(splitHandSumEntry);
+        // HorizontalLayout for second hand for Split
+        HorizontalLayout splitHandDealt = new HorizontalLayout();
+        splitHandDealtWithHandSum.add(splitHandDealt);
+        add(splitHandDealtWithHandSum);
+        if (sameCard) {
+            // add text to layout above split card dealt to show hand sum
+            H5 splitSumText = new H5("Split Hand Sum: " + splitHandSum);
+            splitHandSumEntry.add(splitSumText);
+        }
+
+        // add text to layout above cards dealt to show hand sum
+        H5 handSumText = new H5("Player Hand Sum: " + handSum);
+        H5 dealerHandSumText = new H5("Dealer Hand Sum: " + dealerHandSum);
+        playerHandSumEntry.add(handSumText);
+        dealerHandSumEntry.add(dealerHandSumText);
 
         // Recommendation, Win Probability, Bet Size Projection
 
@@ -91,7 +157,7 @@ public class MainLayout extends VerticalLayout {
 
         // create Buttons
         // adds and shows bet size somewhere
-        Button betButton = new Button("Bet");
+        // Button betButton = new Button("Bet");
         // starts dealing
         Button confirmBetButton = new Button("Confirm Bet");
         // hit
@@ -105,7 +171,7 @@ public class MainLayout extends VerticalLayout {
 
         // HorizontalLayout for bet Buttons
         HorizontalLayout hL2 = new HorizontalLayout();
-        hL2.add(betButton, confirmBetButton);
+        hL2.add(confirmBetButton);
         // MAKE TO WHERE hL2 or hL3 ONLY SHOWS US
         add(hL2);
 
@@ -115,14 +181,22 @@ public class MainLayout extends VerticalLayout {
         // MAKE TO WHERE hL2 or hL3 ONLY SHOWS US
         add(hL3);
 
+        // HorizontalLayout for split action Buttons
+        HorizontalLayout splitButtonsLayout = new HorizontalLayout();
+        add(splitButtonsLayout);
+
         // Deal initial hands
         confirmBetButton.addClickListener(event -> {
 
+            // confirm bet amount
+            betAmount = betAmtDropdown.getValue();
+
+            // deal cards
             String value = deck.get(0).getValue();
             String suit = deck.get(0).getSuit();
             String value2 = deck.get(1).getValue();
             String suit2 = deck.get(1).getSuit();
-            String value3 = deck.get(2).getValue();
+            value3 = deck.get(2).getValue();
             String suit3 = deck.get(2).getSuit();
             // String value4 = deck.get(3).getValue();
             // String suit4 = deck.get(3).getSuit();
@@ -132,18 +206,23 @@ public class MainLayout extends VerticalLayout {
             String cardImage3 = "images/" + value3 + "_of_" + suit3 + ".png";
             // String cardImage4 = "images/" + value4 + "_of_" + suit4 + ".png";
 
+            // checks if cards are the same value so they can be split
+            if (value.equals(value3)) {
+                sameCard = true;
+            }
+
             // give first card to playerHandDealt
-            Image image1 = new Image(cardImage1, "Card");
+            image1 = new Image(cardImage1, "Card");
             image1.setWidth("100px");
             playerHandDealt.add(image1);
 
             // give first card to dealerHandDealt
-            Image image2 = new Image(cardImage2, "Card");
+            image2 = new Image(cardImage2, "Card");
             image2.setWidth("100px");
             dealerHandDealt.add(image2);
 
             // give second card to playerHandDealt
-            Image image3 = new Image(cardImage3, "Card");
+            image3 = new Image(cardImage3, "Card");
             image3.setWidth("100px");
             image3.getStyle().set("margin-left", "-80px");
             playerHandDealt.add(image3);
@@ -178,6 +257,10 @@ public class MainLayout extends VerticalLayout {
                 dealerHandSum = dealerHandSum + Integer.parseInt(value2);
             }
 
+            dealerHandSumEntry.removeAll();
+            H5 dealerHandSumTextNew = new H5("Dealer Hand Sum: " + dealerHandSum);
+            dealerHandSumEntry.add(dealerHandSumTextNew);
+
             // update handSum value
 
             // first card
@@ -201,6 +284,10 @@ public class MainLayout extends VerticalLayout {
                 handSum = handSum + Integer.parseInt(value3);
             }
 
+            playerHandSumEntry.removeAll();
+            H5 handSumTextNew = new H5("Player Hand Sum: " + handSum);
+            playerHandSumEntry.add(handSumTextNew);
+
             // update counts
             ArrayList<String> values = new ArrayList<>();
             values.add(value); values.add(value2); values.add(value3);
@@ -219,6 +306,23 @@ public class MainLayout extends VerticalLayout {
                 else {
                     trueCount = runCount / (deck.size() / 52);
                 }
+            }
+
+            // check if there are aces
+            if (value.equals("ace")) {
+                numPlayerAces = numPlayerAces + 1;
+            }
+            if (value2.equals("ace")) {
+                numDealerAces = numDealerAces + 1;
+            }
+            if (value3.equals("ace")) {
+                numPlayerAces = numPlayerAces + 1;
+            }
+
+            // check BJ
+            if (handSum == 21) {
+                BJ = true;
+                playerBlackJack();
             }
 
             // count code below
@@ -266,6 +370,10 @@ public class MainLayout extends VerticalLayout {
                 handSum = handSum + Integer.parseInt(value);
             }
 
+            playerHandSumEntry.removeAll();
+            H5 handSumTextNew = new H5("Player Hand Sum: " + handSum);
+            playerHandSumEntry.add(handSumTextNew);
+
             // update counts
             if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
                     || value.equals("ace")) {
@@ -281,11 +389,34 @@ public class MainLayout extends VerticalLayout {
                 trueCount = runCount / (deck.size() / 52);
             }
 
+            // did player get another ace
+            if (value.equals("ace")) {
+                numPlayerAces = numPlayerAces + 1;
+            }
+
+            // checks if player busted but has an ace, makes ace = 1
+            if (numPlayerAces > 0 && handSum > 21) {
+                handSum = handSum - 10;
+                numPlayerAces = numPlayerAces - 1;
+
+                playerHandSumEntry.removeAll();
+                handSumTextNew = new H5("Player Hand Sum: " + handSum);
+                playerHandSumEntry.add(handSumTextNew);
+            }
+
             // see if player busted
-            try {
-                bustOrNot();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            // make sure we didn't split
+            if (splitHandDealt.getComponentCount() == 0) {
+                try {
+                    bustOrNot();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            // check if we got BJ for when we hit after splitting
+            if (handSum == 21 && playerHandDealt.getComponentCount() == 2) {
+                BJ = true;
             }
 
         });
@@ -293,18 +424,24 @@ public class MainLayout extends VerticalLayout {
         // standButton clickListener
         standButton.addClickListener(event -> {
 
-            // remove face down card
-            dealerHandDealt.remove(image4);
+            // as long as we didn't split
+            if (splitHandDealt.getComponentCount() == 0) {
+                // remove face down card
+                dealerHandDealt.remove(image4);
 
-            // add cards to dealer
-            dealerHits();
-
+                // add cards to dealer
+                dealerHits();
+            }
         });
 
         // doubleButton clickListener
         doubleButton.addClickListener(event -> {
             // checks if playerHandDealt only has 2 cards
             if (playerHandDealt.getComponentCount() == 2) {
+
+                // makes doubleOrNot true
+                doubleOrNot = true;
+
                 // add card to playerHandDealt
                 String value = deck.get(0).getValue();
                 String suit = deck.get(0).getSuit();
@@ -329,6 +466,10 @@ public class MainLayout extends VerticalLayout {
                     handSum = handSum + Integer.parseInt(value);
                 }
 
+                playerHandSumEntry.removeAll();
+                H5 handSumTextNew = new H5("Player Hand Sum: " + handSum);
+                playerHandSumEntry.add(handSumTextNew);
+
                 // update counts
                 if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
                         || value.equals("ace")) {
@@ -344,12 +485,253 @@ public class MainLayout extends VerticalLayout {
                     trueCount = runCount / (deck.size() / 52);
                 }
 
+                // see if we got an ace
+                if (value.equals("ace")) {
+                    numPlayerAces = numPlayerAces + 1;
+                }
+
+                // checks if player busted but has an ace, makes ace = 1
+                if (numPlayerAces > 0 && handSum > 21) {
+                    handSum = handSum - 10;
+                    numPlayerAces = numPlayerAces - 1;
+
+                    playerHandSumEntry.removeAll();
+                    handSumTextNew = new H5("Player Hand Sum: " + handSum);
+                    playerHandSumEntry.add(handSumTextNew);
+                }
+
                 // see if player busted
                 try {
                     bustOrNot();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+
+                // deal dealer cards
+                if (splitHandDealt.getComponentCount() == 0 && handSum < 22) {
+                    // remove face down card
+                    dealerHandDealt.remove(image4);
+
+                    dealerHits();
+                }
+            }
+        });
+
+        // new action buttons for second hand from split
+        Button hitSplitButton = new Button("Hit Second Hand");
+        Button standSplitButton = new Button("Stand Second Hand");
+        Button doubleSplitButton = new Button("Double Second Hand");
+
+        // splitButton clickListener
+        splitButton.addClickListener(event -> {
+            // make sure cards are the same and player only has 2 cards to split
+            if (sameCard && playerHandDealt.getComponentCount() == 2) {
+                // makes splitOrNot true
+                splitOrNot = true;
+
+                // add second card to split hand
+                // resets alignment
+                image3.getStyle().set("margin-left", "-0px");
+                playerHandDealt.remove(image3);
+                splitHandDealt.add(image3);
+
+                // remove second card value from handSum and add to splitHandSum
+                if (value3.equals("jack") || value3.equals("queen") || value3.equals("king")) {
+                    handSum = handSum - 10;
+                    splitHandSum = splitHandSum + 10;
+                }
+                else if (value3.equals("ace")) {
+                    handSum = handSum - 11;
+                    splitHandSum = splitHandSum + 11;
+                }
+                else {
+                    handSum = handSum - Integer.parseInt(value3);
+                    splitHandSum = splitHandSum + Integer.parseInt(value3);
+                }
+
+                playerHandSumEntry.removeAll();
+                H5 handSumTextNew = new H5("Player Hand Sum: " + handSum);
+                playerHandSumEntry.add(handSumTextNew);
+
+                splitHandSumEntry.removeAll();
+                H5 splitSumTextNew = new H5("Split Hand Sum: " + splitHandSum);
+                splitHandSumEntry.add(splitSumTextNew);
+
+                // add buttons to splitButtonsLayout
+                splitButtonsLayout.add(hitSplitButton, standSplitButton, doubleSplitButton);
+
+                // see if value3 is an ace, if so subtract playerAces by one and add to splitAces
+                if (value3.equals("ace")) {
+                    numPlayerAces = numPlayerAces - 1;
+                    numSplitAces = numSplitAces + 1;
+                }
+            }
+        });
+
+        // click listeners for the second hand from split buttons
+        hitSplitButton.addClickListener(event -> {
+
+            // add card to playerHandDealt
+            String value = deck.get(0).getValue();
+            String suit = deck.get(0).getSuit();
+
+            String cardImage = "images/" + value + "_of_" + suit + ".png";
+            Image image = new Image(cardImage, "Card");
+            image.setWidth("100px");
+            image.getStyle().set("margin-left", "-80px");
+            splitHandDealt.add(image);
+
+            // remove one card from deck
+            deck.remove(0);
+
+            // update splitHandSum value
+            if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                splitHandSum = splitHandSum + 10;
+            }
+            else if (value.equals("ace")) {
+                splitHandSum = splitHandSum + 11;
+            }
+            else {
+                splitHandSum = splitHandSum + Integer.parseInt(value);
+            }
+
+            splitHandSumEntry.removeAll();
+            H5 splitSumTextNew = new H5("Split Hand Sum: " + splitHandSum);
+            splitHandSumEntry.add(splitSumTextNew);
+
+            // update counts
+            if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                    || value.equals("ace")) {
+                runCount--;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                    || value.equals("6")) {
+                runCount++;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else {
+                trueCount = runCount / (deck.size() / 52);
+            }
+
+            // check if ace was dealt
+            if (value.equals("ace")) {
+                numSplitAces = numSplitAces + 1;
+            }
+
+            // checks if player busted but has an ace, makes ace = 1
+            if (numSplitAces > 0 && splitHandSum > 21) {
+                splitHandSum = splitHandSum - 10;
+                numSplitAces = numSplitAces - 1;
+
+                splitHandSumEntry.removeAll();
+                splitSumTextNew = new H5("Split Hand Sum: " + splitHandSum);
+                splitHandSumEntry.add(splitSumTextNew);
+            }
+
+            // check split BJ
+            if (splitHandSum == 21 && splitHandDealt.getComponentCount() == 2) {
+                splitBJ = true;
+            }
+
+            // see if player split hand busted
+            // splitBustOrNot();
+            try {
+                bustOrNot();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+        });
+        // standSplitButton clickListener
+        standSplitButton.addClickListener(event -> {
+
+            // remove face down card
+            dealerHandDealt.remove(image4);
+
+            // add cards to dealer
+            dealerHits();
+
+        });
+        // doubleSplitButton clickListener
+        doubleSplitButton.addClickListener(event -> {
+            // checks if splitHandDealt only has 2 cards
+            if (splitHandDealt.getComponentCount() == 2) {
+
+                // makes splitDoubleOrNot true
+                splitDoubleOrNot = true;
+
+                // add card to splitHandDealt
+                String value = deck.get(0).getValue();
+                String suit = deck.get(0).getSuit();
+
+                String cardImage = "images/" + value + "_of_" + suit + ".png";
+                Image image = new Image(cardImage, "Card");
+                image.setWidth("100px");
+                image.getStyle().set("margin-left", "-80px");
+                splitHandDealt.add(image);
+
+                // remove one card from deck
+                deck.remove(0);
+
+                // update splitHandSum value
+                if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                    splitHandSum = splitHandSum + 10;
+                }
+                else if (value.equals("ace")) {
+                    splitHandSum = splitHandSum + 11;
+                }
+                else {
+                    splitHandSum = splitHandSum + Integer.parseInt(value);
+                }
+
+                splitHandSumEntry.removeAll();
+                H5 splitSumTextNew = new H5("Split Hand Sum: " + splitHandSum);
+                splitHandSumEntry.add(splitSumTextNew);
+
+                // update counts
+                if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                        || value.equals("ace")) {
+                    runCount--;
+                    trueCount = runCount / (deck.size() / 52);
+                }
+                else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                        || value.equals("6")) {
+                    runCount++;
+                    trueCount = runCount / (deck.size() / 52);
+                }
+                else {
+                    trueCount = runCount / (deck.size() / 52);
+                }
+
+                // check if ace was dealt
+                if (value.equals("ace")) {
+                    numSplitAces = numSplitAces + 1;
+                }
+
+                // checks if player busted but has an ace, makes ace = 1
+                if (numSplitAces > 0 && splitHandSum > 21) {
+                    splitHandSum = splitHandSum - 10;
+                    numSplitAces = numSplitAces - 1;
+
+                    splitHandSumEntry.removeAll();
+                    splitSumTextNew = new H5("Split Hand Sum: " + splitHandSum);
+                    splitHandSumEntry.add(splitSumTextNew);
+                }
+
+                // see if player split hand busted
+                // splitBustOrNot();
+                try {
+                    bustOrNot();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                // remove face down card
+                dealerHandDealt.remove(image4);
+
+                // deal dealer cards
+                dealerHits();
             }
         });
 
@@ -357,6 +739,7 @@ public class MainLayout extends VerticalLayout {
         // create reset button???
 
         // create next hand button
+
         // this would reset dealerUpCard, handSum, clear HorizontalLayouts with Cards, etc.
         // HorizontalLayout for nextHandButton
         HorizontalLayout hL4 = new HorizontalLayout();
@@ -369,17 +752,294 @@ public class MainLayout extends VerticalLayout {
             // clear player and dealer hands from HorizontalLayouts
             playerHandDealt.removeAll(); dealerHandDealt.removeAll();
 
-            // reset dealerUpCard and handSum values
+            // reset values
             handSum = 0; dealerUpCard = 0; dealerHandSum = 0;
+            sameCard = false; value3 = ""; splitHandSum = 0;
+            BJ = false; doubleOrNot = false; splitOrNot = false;
+            splitBJ = false; splitDoubleOrNot = false; numSplitAces = 0;
+            numPlayerAces = 0; numDealerAces = 0;
+
+            // clear split hands from HorizontalLayouts
+            splitHandDealt.removeAll(); splitButtonsLayout.removeAll();
+
+            // reset the hand sum texts
+            playerHandSumEntry.removeAll();
+            H5 handSumTextNew = new H5("Player Hand Sum: " + handSum);
+            playerHandSumEntry.add(handSumTextNew);
+
+            dealerHandSumEntry.removeAll();
+            H5 dealerHandSumTextNew = new H5("Dealer Hand Sum: " + dealerHandSum);
+            dealerHandSumEntry.add(dealerHandSumTextNew);
+
+            splitHandSumEntry.removeAll();
+            // H5 splitSumTextNew = new H5("Split Hand Sum: " + splitHandSum);
+            // splitHandSumEntry.add(splitSumTextNew);
+
         });
+    }
 
+    private void winLoseOrPush() {
 
+        // win by blackjack
+        if (BJ) {
+            playerBalance = playerBalance + 1.5 * betAmount;
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // win by dealer bust or handSum > dealerHandSum while player not busting
+        else if (dealerHandSum > 21 || (handSum < 22 && handSum > dealerHandSum)) {
+            // checks if doubled
+            if (doubleOrNot) {
+                playerBalance = playerBalance + 2 * betAmount;
+            }
+            else {
+                playerBalance = playerBalance + betAmount;
+            }
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // lose by player bust and dealerHandSum > handSum without dealer busting
+        else if (handSum > 21 || handSum < dealerHandSum) {
+            // checks if doubled
+            if (doubleOrNot) {
+                playerBalance = playerBalance - 2 * betAmount;
+            }
+            else {
+                playerBalance = playerBalance - betAmount;
+            }
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // push if handSum = dealerHandSum
+        // nothing changes if push
+        else {
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+    }
+
+    private void splitWinLoseOrPush() {
+
+        // win, loss, or push logic for split hand
+
+        // win by blackjack
+        if (splitBJ) {
+            playerBalance = playerBalance + 1.5 * betAmount;
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // win by dealer bust or splitHandSum > dealerHandSum while player not busting
+        else if (dealerHandSum > 21 || (splitHandSum < 22 && splitHandSum > dealerHandSum)) {
+            // checks if doubled
+            if (splitDoubleOrNot) {
+                playerBalance = playerBalance + 2 * betAmount;
+            }
+            else {
+                playerBalance = playerBalance + betAmount;
+            }
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // lose by split player bust and dealerHandSum > splitHandSum without dealer busting
+        else if (splitHandSum > 21 || splitHandSum < dealerHandSum) {
+            // checks if doubled
+            if (splitDoubleOrNot) {
+                playerBalance = playerBalance - 2 * betAmount;
+            }
+            else {
+                playerBalance = playerBalance - betAmount;
+            }
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // push if handSum = dealerHandSum
+        // nothing changes if push
+        else {
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+
+        // win, loss, or push logic for original hand
+
+        // win by blackjack
+        if (BJ) {
+            playerBalance = playerBalance + 1.5 * betAmount;
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // win by dealer bust or handSum > dealerHandSum while player not busting
+        else if (dealerHandSum > 21 || (handSum < 22 && handSum > dealerHandSum)) {
+            // checks if doubled
+            if (doubleOrNot) {
+                playerBalance = playerBalance + 2 * betAmount;
+            }
+            else {
+                playerBalance = playerBalance + betAmount;
+            }
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // lose by player bust and dealerHandSum > handSum without dealer busting
+        else if (handSum > 21 || handSum < dealerHandSum) {
+            // checks if doubled
+            if (doubleOrNot) {
+                playerBalance = playerBalance - 2 * betAmount;
+            }
+            else {
+                playerBalance = playerBalance - betAmount;
+            }
+
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+        // push if handSum = dealerHandSum
+        // nothing changes if push
+        else {
+            hL1.remove(playerBalanceText);
+            playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+            hL1.add(playerBalanceText);
+        }
+    }
+
+    private void playerBlackJack() {
+
+        // add card to replace face down card
+        // add card to dealerHandDealt
+        String value = deck.get(0).getValue();
+        String suit = deck.get(0).getSuit();
+
+        String cardImage = "images/" + value + "_of_" + suit + ".png";
+        Image image = new Image(cardImage, "Card");
+        image.setWidth("100px");
+        image.getStyle().set("margin-left", "-116px");
+        dealerHandDealt.add(image);
+
+        // update counts
+        if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                || value.equals("ace")) {
+            runCount--;
+            trueCount = runCount / (deck.size() / 52);
+        }
+        else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                || value.equals("6")) {
+            runCount++;
+            trueCount = runCount / (deck.size() / 52);
+        }
+        else {
+            trueCount = runCount / (deck.size() / 52);
+        }
+
+        // update dealerHandSum
+        if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+            dealerHandSum = dealerHandSum + 10;
+        }
+        else if (value.equals("ace")) {
+            dealerHandSum = dealerHandSum + 11;
+        }
+        else {
+            dealerHandSum = dealerHandSum + Integer.parseInt(value);
+        }
+
+        dealerHandSumEntry.removeAll();
+        H5 dealerHandSumTextNew = new H5("Dealer Hand Sum: " + dealerHandSum);
+        dealerHandSumEntry.add(dealerHandSumTextNew);
+
+        // remove one card from deck
+        deck.remove(0);
+
+        if (!splitOrNot) {
+            // checks if player won, lost, or pushed
+            winLoseOrPush();
+        }
+        else {
+            splitWinLoseOrPush();
+        }
     }
 
     private void bustOrNot() throws InterruptedException {
 
+        // if we split and busted both hands
+        if (splitOrNot && (handSum > 21 && splitHandSum > 21)) {
+            // wait 2 second to execute
+            // Thread.sleep(2000);
+
+            // add cards to dealer
+            // dealerHits();
+
+            // add card to replace face down card
+            // add card to dealerHandDealt
+            String value = deck.get(0).getValue();
+            String suit = deck.get(0).getSuit();
+
+            String cardImage = "images/" + value + "_of_" + suit + ".png";
+            Image image = new Image(cardImage, "Card");
+            image.setWidth("100px");
+            image.getStyle().set("margin-left", "-116px");
+            dealerHandDealt.add(image);
+
+            // update counts
+            if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
+                    || value.equals("ace")) {
+                runCount--;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else if (value.equals("2") || value.equals("3") || value.equals("4") || value.equals("5")
+                    || value.equals("6")) {
+                runCount++;
+                trueCount = runCount / (deck.size() / 52);
+            }
+            else {
+                trueCount = runCount / (deck.size() / 52);
+            }
+
+            // update dealerHandSum
+            if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
+                dealerHandSum = dealerHandSum + 10;
+            }
+            else if (value.equals("ace")) {
+                dealerHandSum = dealerHandSum + 11;
+            }
+            else {
+                dealerHandSum = dealerHandSum + Integer.parseInt(value);
+            }
+
+            dealerHandSumEntry.removeAll();
+            H5 dealerHandSumTextNew = new H5("Dealer Hand Sum: " + dealerHandSum);
+            dealerHandSumEntry.add(dealerHandSumTextNew);
+
+            // remove one card from deck
+            deck.remove(0);
+
+            if (!splitOrNot) {
+                // checks if player won, lost, or pushed
+                winLoseOrPush();
+            }
+            else {
+                splitWinLoseOrPush();
+            }
+        }
+
         // if player's hand is > 21, they busted
-        if (handSum > 21) {
+        if (handSum > 21 && !splitOrNot) {
 
             // wait 2 second to execute
             // Thread.sleep(2000);
@@ -424,19 +1084,30 @@ public class MainLayout extends VerticalLayout {
                 dealerHandSum = dealerHandSum + Integer.parseInt(value);
             }
 
+            dealerHandSumEntry.removeAll();
+            H5 dealerHandSumTextNew = new H5("Dealer Hand Sum: " + dealerHandSum);
+            dealerHandSumEntry.add(dealerHandSumTextNew);
+
             // remove one card from deck
             deck.remove(0);
 
-            // GIVE LOGIC TO UPDATE MONEY BALANCE
-            // PLAYER LOST BECAUSE BUSTED
+            if (!splitOrNot) {
+                // checks if player won, lost, or pushed
+                winLoseOrPush();
+            }
+            else {
+                splitWinLoseOrPush();
+            }
 
         }
     }
 
     private void dealerHits() {
 
-        // DETERMINE IF PLAYER WON OR NOT
-        // UPDATE PLAYER MONEY BALANCE AT END
+        // removes back of card image if still there
+        if (dealerHandDealt.getComponentCount() == 2) {
+            dealerHandDealt.remove(image4);
+        }
 
         while (dealerHandSum < 17) {
 
@@ -464,6 +1135,10 @@ public class MainLayout extends VerticalLayout {
                 dealerHandSum = dealerHandSum + Integer.parseInt(value);
             }
 
+            dealerHandSumEntry.removeAll();
+            H5 dealerHandSumTextNew = new H5("Dealer Hand Sum: " + dealerHandSum);
+            dealerHandSumEntry.add(dealerHandSumTextNew);
+
             // update counts
             if (value.equals("10") || value.equals("jack") || value.equals("queen") || value.equals("king")
                     || value.equals("ace")) {
@@ -481,6 +1156,29 @@ public class MainLayout extends VerticalLayout {
 
             // remove one card from deck
             deck.remove(0);
+
+            // see if dealer got an ace
+            if (value.equals("ace")) {
+                numDealerAces = numDealerAces + 1;
+            }
+
+            // checks if dealer busted but has an ace, makes ace = 1
+            if (numDealerAces > 0 && dealerHandSum > 21) {
+                dealerHandSum = dealerHandSum - 10;
+                numDealerAces = numDealerAces - 1;
+
+                dealerHandSumEntry.removeAll();
+                dealerHandSumTextNew = new H5("Dealer Hand Sum: " + dealerHandSum);
+                dealerHandSumEntry.add(dealerHandSumTextNew);
+            }
+        }
+
+        if (!splitOrNot) {
+            // checks if player won, lost, or pushed
+            winLoseOrPush();
+        }
+        else {
+            splitWinLoseOrPush();
         }
     }
 
