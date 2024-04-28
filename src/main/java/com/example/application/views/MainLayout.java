@@ -1,6 +1,7 @@
 package com.example.application.views;
 
 import com.example.application.Card;
+import com.ibm.icu.impl.CalendarAstronomer;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
@@ -34,6 +35,8 @@ public class MainLayout extends VerticalLayout {
     private String handOutcome;
     private HorizontalLayout hL1 = new HorizontalLayout();
     private H4 playerBalanceText = new H4();
+    private H4 runCountText = new H4();
+    private H4 trueCountText = new H4();
     private boolean BJ;
     private int betAmount;
     private boolean doubleOrNot;
@@ -43,12 +46,16 @@ public class MainLayout extends VerticalLayout {
     private int numPlayerAces;
     private int numDealerAces;
     private int numSplitAces;
+    HorizontalLayout hLCountTexts = new HorizontalLayout();
+    HorizontalLayout hLPlayerBalance = new HorizontalLayout();
 
     /*
     TO DO:
     - add all the smile stuff near top - don't forget to add for split hand too (hard part)
     - change bet amt to any value?
-    - add updated counts near top?
+    - counts aren't very useful if we use 20 decks
+    -- maybe use 8 or less decks and reset when 3/4 or so through them
+    --- would reset counts too, keep same balance
     - dealer hits on soft 17
      */
 
@@ -68,6 +75,8 @@ public class MainLayout extends VerticalLayout {
         // player's balance (changes after every hand)
         // start at $0
         playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
+        // HorizontalLayout for playerBalanceText
+        hLPlayerBalance.add(playerBalanceText);
 
         // input for bet amount (unit size)
         // sizes: $10, $15, $20, $25, $50, $75, $100, $150, $200, $250, $300
@@ -85,14 +94,19 @@ public class MainLayout extends VerticalLayout {
         hL1.add(betAmtDropdown);
         add(hL1);
 
+        // add text for counts next to balance in HorizontalLayout
+        runCountText = new H4("Run Count: " + runCount);
+        trueCountText = new H4("True Count: " + trueCount);
+        hLCountTexts.add(runCountText, trueCountText);
+
         // clickListener for startGameButton
         startGameButton.addClickListener(event -> {
 
             // generates decks
             deckGenerator();
 
-            // add balance at top
-            hL1.add(playerBalanceText);
+            // add balance and count texts at top
+            hL1.add(hLPlayerBalance, hLCountTexts);
 
             // initialize handSum, dealerUpCard, count values, etc
             handSum = 0; dealerUpCard = 0; trueCount = 0; runCount = 0;
@@ -308,6 +322,12 @@ public class MainLayout extends VerticalLayout {
                 }
             }
 
+            // update counts text
+            hLCountTexts.remove(runCountText, trueCountText);
+            runCountText = new H4("Run Count: " + runCount);
+            trueCountText = new H4("True Count: " + trueCount);
+            hLCountTexts.add(runCountText, trueCountText);
+
             // check if there are aces
             if (value.equals("ace")) {
                 numPlayerAces = numPlayerAces + 1;
@@ -388,6 +408,12 @@ public class MainLayout extends VerticalLayout {
             else {
                 trueCount = runCount / (deck.size() / 52);
             }
+
+            // update counts text
+            hLCountTexts.remove(runCountText, trueCountText);
+            runCountText = new H4("Run Count: " + runCount);
+            trueCountText = new H4("True Count: " + trueCount);
+            hLCountTexts.add(runCountText, trueCountText);
 
             // did player get another ace
             if (value.equals("ace")) {
@@ -484,6 +510,12 @@ public class MainLayout extends VerticalLayout {
                 else {
                     trueCount = runCount / (deck.size() / 52);
                 }
+
+                // update counts text
+                hLCountTexts.remove(runCountText, trueCountText);
+                runCountText = new H4("Run Count: " + runCount);
+                trueCountText = new H4("True Count: " + trueCount);
+                hLCountTexts.add(runCountText, trueCountText);
 
                 // see if we got an ace
                 if (value.equals("ace")) {
@@ -614,6 +646,12 @@ public class MainLayout extends VerticalLayout {
                 trueCount = runCount / (deck.size() / 52);
             }
 
+            // update counts text
+            hLCountTexts.remove(runCountText, trueCountText);
+            runCountText = new H4("Run Count: " + runCount);
+            trueCountText = new H4("True Count: " + trueCount);
+            hLCountTexts.add(runCountText, trueCountText);
+
             // check if ace was dealt
             if (value.equals("ace")) {
                 numSplitAces = numSplitAces + 1;
@@ -704,6 +742,12 @@ public class MainLayout extends VerticalLayout {
                     trueCount = runCount / (deck.size() / 52);
                 }
 
+                // update counts text
+                hLCountTexts.remove(runCountText, trueCountText);
+                runCountText = new H4("Run Count: " + runCount);
+                trueCountText = new H4("True Count: " + trueCount);
+                hLCountTexts.add(runCountText, trueCountText);
+
                 // check if ace was dealt
                 if (value.equals("ace")) {
                     numSplitAces = numSplitAces + 1;
@@ -784,9 +828,9 @@ public class MainLayout extends VerticalLayout {
         if (BJ) {
             playerBalance = playerBalance + 1.5 * betAmount;
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // win by dealer bust or handSum > dealerHandSum while player not busting
         else if (dealerHandSum > 21 || (handSum < 22 && handSum > dealerHandSum)) {
@@ -798,9 +842,9 @@ public class MainLayout extends VerticalLayout {
                 playerBalance = playerBalance + betAmount;
             }
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // lose by player bust and dealerHandSum > handSum without dealer busting
         else if (handSum > 21 || handSum < dealerHandSum) {
@@ -812,16 +856,16 @@ public class MainLayout extends VerticalLayout {
                 playerBalance = playerBalance - betAmount;
             }
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // push if handSum = dealerHandSum
         // nothing changes if push
         else {
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
     }
 
@@ -833,9 +877,9 @@ public class MainLayout extends VerticalLayout {
         if (splitBJ) {
             playerBalance = playerBalance + 1.5 * betAmount;
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // win by dealer bust or splitHandSum > dealerHandSum while player not busting
         else if (dealerHandSum > 21 || (splitHandSum < 22 && splitHandSum > dealerHandSum)) {
@@ -847,9 +891,9 @@ public class MainLayout extends VerticalLayout {
                 playerBalance = playerBalance + betAmount;
             }
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // lose by split player bust and dealerHandSum > splitHandSum without dealer busting
         else if (splitHandSum > 21 || splitHandSum < dealerHandSum) {
@@ -861,16 +905,16 @@ public class MainLayout extends VerticalLayout {
                 playerBalance = playerBalance - betAmount;
             }
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // push if handSum = dealerHandSum
         // nothing changes if push
         else {
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
 
         // win, loss, or push logic for original hand
@@ -879,9 +923,9 @@ public class MainLayout extends VerticalLayout {
         if (BJ) {
             playerBalance = playerBalance + 1.5 * betAmount;
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // win by dealer bust or handSum > dealerHandSum while player not busting
         else if (dealerHandSum > 21 || (handSum < 22 && handSum > dealerHandSum)) {
@@ -893,9 +937,9 @@ public class MainLayout extends VerticalLayout {
                 playerBalance = playerBalance + betAmount;
             }
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // lose by player bust and dealerHandSum > handSum without dealer busting
         else if (handSum > 21 || handSum < dealerHandSum) {
@@ -907,16 +951,16 @@ public class MainLayout extends VerticalLayout {
                 playerBalance = playerBalance - betAmount;
             }
 
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
         // push if handSum = dealerHandSum
         // nothing changes if push
         else {
-            hL1.remove(playerBalanceText);
+            hLPlayerBalance.remove(playerBalanceText);
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
-            hL1.add(playerBalanceText);
+            hLPlayerBalance.add(playerBalanceText);
         }
     }
 
@@ -947,6 +991,12 @@ public class MainLayout extends VerticalLayout {
         else {
             trueCount = runCount / (deck.size() / 52);
         }
+
+        // update counts text
+        hLCountTexts.remove(runCountText, trueCountText);
+        runCountText = new H4("Run Count: " + runCount);
+        trueCountText = new H4("True Count: " + trueCount);
+        hLCountTexts.add(runCountText, trueCountText);
 
         // update dealerHandSum
         if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
@@ -1011,6 +1061,12 @@ public class MainLayout extends VerticalLayout {
                 trueCount = runCount / (deck.size() / 52);
             }
 
+            // update counts text
+            hLCountTexts.remove(runCountText, trueCountText);
+            runCountText = new H4("Run Count: " + runCount);
+            trueCountText = new H4("True Count: " + trueCount);
+            hLCountTexts.add(runCountText, trueCountText);
+
             // update dealerHandSum
             if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
                 dealerHandSum = dealerHandSum + 10;
@@ -1072,6 +1128,12 @@ public class MainLayout extends VerticalLayout {
             else {
                 trueCount = runCount / (deck.size() / 52);
             }
+
+            // update counts text
+            hLCountTexts.remove(runCountText, trueCountText);
+            runCountText = new H4("Run Count: " + runCount);
+            trueCountText = new H4("True Count: " + trueCount);
+            hLCountTexts.add(runCountText, trueCountText);
 
             // update dealerHandSum
             if (value.equals("jack") || value.equals("queen") || value.equals("king")) {
@@ -1153,6 +1215,12 @@ public class MainLayout extends VerticalLayout {
             else {
                 trueCount = runCount / (deck.size() / 52);
             }
+
+            // update counts text
+            hLCountTexts.remove(runCountText, trueCountText);
+            runCountText = new H4("Run Count: " + runCount);
+            trueCountText = new H4("True Count: " + trueCount);
+            hLCountTexts.add(runCountText, trueCountText);
 
             // remove one card from deck
             deck.remove(0);
