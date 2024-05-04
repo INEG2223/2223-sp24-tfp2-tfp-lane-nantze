@@ -1,13 +1,18 @@
 package com.example.application.views;
 
 import com.example.application.Card;
-import com.ibm.icu.impl.CalendarAstronomer;
+import com.example.application.Suggestion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.validator.IntegerRangeValidator;
 import com.vaadin.flow.router.Route;
+import smile.classification.RandomForest;
+import tech.tablesaw.api.Table;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +27,7 @@ public class MainLayout extends VerticalLayout {
     private int handSum;
     private int dealerUpCard;
     private HorizontalLayout dealerHandDealt = new HorizontalLayout();
+    private HorizontalLayout playerHandDealt = new HorizontalLayout();
     private int dealerHandSum;
     private Image image4 = new Image("images/back_of_card.png", "Card");
     private Image image1 = new Image();
@@ -46,17 +52,27 @@ public class MainLayout extends VerticalLayout {
     private int numPlayerAces;
     private int numDealerAces;
     private int numSplitAces;
-    HorizontalLayout hLCountTexts = new HorizontalLayout();
-    HorizontalLayout hLPlayerBalance = new HorizontalLayout();
+    private HorizontalLayout hLCountTexts = new HorizontalLayout();
+    private HorizontalLayout hLPlayerBalance = new HorizontalLayout();
+    private int numHands;
+    private Table data;
+    private RandomForest RF1;
+    private HorizontalLayout HLforSmileStuff = new HorizontalLayout();
+    private HorizontalLayout HLforSuggestion = new HorizontalLayout();
+    private H4 suggestionText = new H4();
+    private HorizontalLayout HLforExpectedBet = new HorizontalLayout();
+    private H4 expectedBetText = new H4();
+    private HorizontalLayout HLforOutcomePrediction = new HorizontalLayout();
+    private H4 outcomePredictionText = new H4();
+    private String suggestionValue;
 
     /*
     TO DO:
-    - add all the smile stuff near top - don't forget to add for split hand too (hard part)
-    - change bet amt to any value?
-    - counts aren't very useful if we use 20 decks
-    -- maybe use 8 or less decks and reset when 3/4 or so through them
-    --- would reset counts too, keep same balance
+    - add all the smile stuff near top
+    - add suggestion for split hand
+    - figure out how to limit bet amt to 1-300
     - dealer hits on soft 17
+    - when split hand busts but original stays, make to where dealerHits() executes
      */
 
     public MainLayout() {
@@ -70,7 +86,17 @@ public class MainLayout extends VerticalLayout {
 
         // add Start Game button
         Button startGameButton = new Button("Start Game");
-        add(startGameButton);
+
+        // add Start Game button to HorizontalLayout
+        HorizontalLayout HLwithStartButton = new HorizontalLayout();
+        HLwithStartButton.add(startGameButton);
+        add(HLwithStartButton);
+
+        // add SMILE stuff to HorizontalLayout next to start button
+        HLwithStartButton.add(HLforSmileStuff);
+
+        // HorizontalLayout for 3 smile things added to HLforSmileStuff
+        HLforSmileStuff.add(HLforSuggestion, HLforOutcomePrediction, HLforExpectedBet);
 
         // player's balance (changes after every hand)
         // start at $0
@@ -78,6 +104,7 @@ public class MainLayout extends VerticalLayout {
         // HorizontalLayout for playerBalanceText
         hLPlayerBalance.add(playerBalanceText);
 
+        /*
         // input for bet amount (unit size)
         // sizes: $10, $15, $20, $25, $50, $75, $100, $150, $200, $250, $300
 
@@ -89,6 +116,13 @@ public class MainLayout extends VerticalLayout {
 
         ComboBox<Integer> betAmtDropdown = new ComboBox<>("Bet Amount $");
         betAmtDropdown.setItems(betAmts);
+
+         */
+
+        // input for bet amount (unit size) --> any value
+        IntegerField betAmtDropdown = new IntegerField("Bet Amount $", "Enter an Integer 1-300");
+        // min bet: $1, max bet: $300
+        betAmtDropdown.setMin(1); betAmtDropdown.setMax(300);
 
         // HorizontalLayout to add Bet Amount to
         hL1.add(betAmtDropdown);
@@ -114,7 +148,17 @@ public class MainLayout extends VerticalLayout {
             playerBalance = 0.00; handOutcome = "push"; BJ = false;
             betAmount = 0; doubleOrNot = false; splitOrNot = false;
             splitBJ = false; splitDoubleOrNot = false; numPlayerAces = 0;
-            numDealerAces = 0; numSplitAces = 0;
+            numDealerAces = 0; numSplitAces = 0; numHands = 0; suggestionValue = "";
+
+            // process data for RandomForest
+            data = Suggestion.dataProcessing();
+            // create RandomForest model
+            RF1 = Suggestion.randomForest(data);
+
+            // add text to HLforSuggestion to show suggestion
+            HLforSuggestion.removeAll();
+            suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
+            HLforSuggestion.add(suggestionText);
 
         });
 
@@ -131,7 +175,6 @@ public class MainLayout extends VerticalLayout {
         dealerHandDealtWithHandSum.add(dealerHandSumEntry);
 
         // HorizontalLayout for cards dealt
-        HorizontalLayout playerHandDealt = new HorizontalLayout();
         playerHandDealt.setWidthFull();
         //HorizontalLayout dealerHandDealt = new HorizontalLayout();
         dealerHandDealt.setWidthFull();
@@ -342,7 +385,21 @@ public class MainLayout extends VerticalLayout {
             // check BJ
             if (handSum == 21) {
                 BJ = true;
+
+                // tells player to press next hand
+                HLforSuggestion.removeAll();
+                suggestionText = new H4(String.format("Suggested Action: %s", "Next Hand"));
+                HLforSuggestion.add(suggestionText);
+
                 playerBlackJack();
+            }
+
+            // updates text to HLforSuggestion to show suggestion
+            if (!BJ) {
+                giveSuggestion();
+                HLforSuggestion.removeAll();
+                suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
+                HLforSuggestion.add(suggestionText);
             }
 
             // count code below
@@ -420,6 +477,12 @@ public class MainLayout extends VerticalLayout {
                 numPlayerAces = numPlayerAces + 1;
             }
 
+            // updates text to HLforSuggestion to show suggestion
+            giveSuggestion();
+            HLforSuggestion.removeAll();
+            suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
+            HLforSuggestion.add(suggestionText);
+
             // checks if player busted but has an ace, makes ace = 1
             if (numPlayerAces > 0 && handSum > 21) {
                 handSum = handSum - 10;
@@ -443,6 +506,11 @@ public class MainLayout extends VerticalLayout {
             // check if we got BJ for when we hit after splitting
             if (handSum == 21 && playerHandDealt.getComponentCount() == 2) {
                 BJ = true;
+
+                // tells player to press next hand
+                HLforSuggestion.removeAll();
+                suggestionText = new H4(String.format("Suggested Action: %s", "Next Hand"));
+                HLforSuggestion.add(suggestionText);
             }
 
         });
@@ -558,6 +626,13 @@ public class MainLayout extends VerticalLayout {
         splitButton.addClickListener(event -> {
             // make sure cards are the same and player only has 2 cards to split
             if (sameCard && playerHandDealt.getComponentCount() == 2) {
+
+                // give suggestion on first hand and update text
+                giveSuggestion();
+                HLforSuggestion.removeAll();
+                suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
+                HLforSuggestion.add(suggestionText);
+
                 // makes splitOrNot true
                 splitOrNot = true;
 
@@ -779,9 +854,6 @@ public class MainLayout extends VerticalLayout {
             }
         });
 
-
-        // create reset button???
-
         // create next hand button
 
         // this would reset dealerUpCard, handSum, clear HorizontalLayouts with Cards, etc.
@@ -801,7 +873,7 @@ public class MainLayout extends VerticalLayout {
             sameCard = false; value3 = ""; splitHandSum = 0;
             BJ = false; doubleOrNot = false; splitOrNot = false;
             splitBJ = false; splitDoubleOrNot = false; numSplitAces = 0;
-            numPlayerAces = 0; numDealerAces = 0;
+            numPlayerAces = 0; numDealerAces = 0; suggestionValue = "";
 
             // clear split hands from HorizontalLayouts
             splitHandDealt.removeAll(); splitButtonsLayout.removeAll();
@@ -819,7 +891,96 @@ public class MainLayout extends VerticalLayout {
             // H5 splitSumTextNew = new H5("Split Hand Sum: " + splitHandSum);
             // splitHandSumEntry.add(splitSumTextNew);
 
+            // update numHands
+            numHands = numHands + 1;
+
+            // updates text to HLforSuggestion to show suggestion
+            HLforSuggestion.removeAll();
+            suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
+            HLforSuggestion.add(suggestionText);
+
         });
+    }
+
+    private void giveSuggestion() {
+
+        // call makeSuggestion() method and update suggestionValue
+        suggestionValue = Suggestion.makeSuggestion(RF1, dealerHandSum, handSum, runCount, trueCount);
+
+        // convert letters into words
+        if (suggestionValue.equals("D")) {
+            suggestionValue = "Double";
+        }
+        else if (suggestionValue.equals("H")) {
+            suggestionValue = "Hit";
+        }
+        else {
+            suggestionValue = "Stand";
+        }
+
+        // logic for double, can only double on third card
+        if (playerHandDealt.getComponentCount() != 2 && suggestionValue.equals("Double")) {
+            suggestionValue = "Hit";
+        }
+
+        // split logic
+        if (playerHandDealt.getComponentCount() != 2) {
+            if ((handSum == 4 || handSum == 6) && sameCard) {
+                if (dealerHandSum == 2 || dealerHandSum == 3 || dealerHandSum == 4
+                        || dealerHandSum == 5 || dealerHandSum == 6 || dealerHandSum == 7) {
+                    suggestionValue = "Split";
+                }
+            }
+            else if (handSum == 8 && sameCard) {
+                if (dealerHandSum == 5 || dealerHandSum == 6) {
+                    suggestionValue = "Split";
+                }
+            }
+            else if (handSum == 12 && sameCard) {
+                if (dealerHandSum == 2 || dealerHandSum == 3 || dealerHandSum == 4
+                        || dealerHandSum == 5 || dealerHandSum == 6) {
+                    suggestionValue = "Split";
+                }
+            }
+            else if (handSum == 14 && sameCard) {
+                if (dealerHandSum == 2 || dealerHandSum == 3 || dealerHandSum == 4
+                        || dealerHandSum == 5 || dealerHandSum == 6 || dealerHandSum == 7) {
+                    suggestionValue = "Split";
+                }
+            }
+            else if ((handSum == 16 || handSum == 22 || numPlayerAces == 2) && sameCard) {
+                suggestionValue = "Split";
+            }
+            else if (handSum == 18 && sameCard) {
+                if (dealerHandSum == 2 || dealerHandSum == 3 || dealerHandSum == 4
+                        || dealerHandSum == 5 || dealerHandSum == 6 || dealerHandSum == 8
+                        || dealerHandSum == 9) {
+                    suggestionValue = "Split";
+                }
+            }
+
+        }
+    }
+
+    private void reshuffleDeck() {
+
+        // we can say average number of cards dealt per hand to dealer and player is 6
+        if (numHands >= (6 * 52)/6) {
+            // generate new deck
+            deckGenerator();
+
+            // reset counts
+            trueCount = 0; runCount = 0;
+
+            // update counts text
+            hLCountTexts.remove(runCountText, trueCountText);
+            runCountText = new H4("Run Count: " + runCount);
+            trueCountText = new H4("True Count: " + trueCount);
+            hLCountTexts.add(runCountText, trueCountText);
+
+            // reset numHands
+            numHands = 0;
+        }
     }
 
     private void winLoseOrPush() {
@@ -867,6 +1028,9 @@ public class MainLayout extends VerticalLayout {
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
             hLPlayerBalance.add(playerBalanceText);
         }
+
+        // check if we need to reshuffle deck
+        reshuffleDeck();
     }
 
     private void splitWinLoseOrPush() {
@@ -962,6 +1126,9 @@ public class MainLayout extends VerticalLayout {
             playerBalanceText = new H4(String.format("Balance: $%.2f", playerBalance));
             hLPlayerBalance.add(playerBalanceText);
         }
+
+        // check if we need to reshuffle deck
+        reshuffleDeck();
     }
 
     private void playerBlackJack() {
@@ -1103,6 +1270,11 @@ public class MainLayout extends VerticalLayout {
             // add cards to dealer
             // dealerHits();
 
+            // tells player to press next hand
+            HLforSuggestion.removeAll();
+            suggestionText = new H4(String.format("Suggested Action: %s", "Next Hand"));
+            HLforSuggestion.add(suggestionText);
+
             // add card to replace face down card
             // add card to dealerHandDealt
             String value = deck.get(0).getValue();
@@ -1241,6 +1413,11 @@ public class MainLayout extends VerticalLayout {
             }
         }
 
+        // tells player to press next hand
+        HLforSuggestion.removeAll();
+        suggestionText = new H4(String.format("Suggested Action: %s", "Next Hand"));
+        HLforSuggestion.add(suggestionText);
+
         if (!splitOrNot) {
             // checks if player won, lost, or pushed
             winLoseOrPush();
@@ -1265,8 +1442,8 @@ public class MainLayout extends VerticalLayout {
         values.add("ace"); values.add("jack");
         values.add("queen"); values.add("king");
 
-        // number of decks = 20 --> large so player can play nonstop
-        for (int i = 0; i < 20; i++) {
+        // number of decks = 8
+        for (int i = 0; i < 8; i++) {
             for (String suit : suits) {
                 for (String value : values) {
                     Card card = new Card(suit, value);
