@@ -1,6 +1,7 @@
 package com.example.application.views;
 
 import com.example.application.Card;
+import com.example.application.InitialPredictionOutcome;
 import com.example.application.Suggestion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -57,6 +58,7 @@ public class MainLayout extends VerticalLayout {
     private int numHands;
     private Table data;
     private RandomForest RF1;
+    private Table simulatedData;
     private HorizontalLayout HLforSmileStuff = new HorizontalLayout();
     private HorizontalLayout HLforSuggestion = new HorizontalLayout();
     private H4 suggestionText = new H4();
@@ -65,6 +67,7 @@ public class MainLayout extends VerticalLayout {
     private HorizontalLayout HLforOutcomePrediction = new HorizontalLayout();
     private H4 outcomePredictionText = new H4();
     private String suggestionValue;
+    private String predictionValue;
 
     /*
     TO DO:
@@ -149,16 +152,25 @@ public class MainLayout extends VerticalLayout {
             betAmount = 0; doubleOrNot = false; splitOrNot = false;
             splitBJ = false; splitDoubleOrNot = false; numPlayerAces = 0;
             numDealerAces = 0; numSplitAces = 0; numHands = 0; suggestionValue = "";
+            predictionValue = "";
 
             // process data for RandomForest
             data = Suggestion.dataProcessing();
             // create RandomForest model
             RF1 = Suggestion.randomForest(data);
 
+            // process data for InitialPredictionOutcome
+            simulatedData = InitialPredictionOutcome.readData();
+
             // add text to HLforSuggestion to show suggestion
             HLforSuggestion.removeAll();
             suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
             HLforSuggestion.add(suggestionText);
+
+            // add text to HLforOutcomePrediction to show outcome prediction
+            HLforOutcomePrediction.removeAll();
+            outcomePredictionText = new H4(String.format("Initial Hand Outcome Prediction: %s", predictionValue));
+            HLforOutcomePrediction.add(outcomePredictionText);
 
         });
 
@@ -401,6 +413,12 @@ public class MainLayout extends VerticalLayout {
                 suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
                 HLforSuggestion.add(suggestionText);
             }
+
+            // updates text to HLforOutcomePrediction to show predicted outcome
+            giveOutcomePrediction();
+            HLforOutcomePrediction.removeAll();
+            outcomePredictionText = new H4(String.format("Initial Hand Outcome Prediction: %s", predictionValue));
+            HLforOutcomePrediction.add(outcomePredictionText);
 
             // count code below
             /*
@@ -874,6 +892,7 @@ public class MainLayout extends VerticalLayout {
             BJ = false; doubleOrNot = false; splitOrNot = false;
             splitBJ = false; splitDoubleOrNot = false; numSplitAces = 0;
             numPlayerAces = 0; numDealerAces = 0; suggestionValue = "";
+            predictionValue = "";
 
             // clear split hands from HorizontalLayouts
             splitHandDealt.removeAll(); splitButtonsLayout.removeAll();
@@ -899,7 +918,20 @@ public class MainLayout extends VerticalLayout {
             suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
             HLforSuggestion.add(suggestionText);
 
+            // updates text to HLforOutcomePrediction to show predicted outcome
+            HLforOutcomePrediction.removeAll();
+            outcomePredictionText = new H4(String.format("Initial Hand Outcome Prediction: %s", predictionValue));
+            HLforOutcomePrediction.add(outcomePredictionText);
+
         });
+    }
+
+    private void giveOutcomePrediction() {
+
+        // Are we predicted to Win, Lose, or Push current hand?
+        double winPredictionDouble = InitialPredictionOutcome.winPred(simulatedData, dealerHandSum, handSum);
+        predictionValue = InitialPredictionOutcome.handResult(winPredictionDouble);
+
     }
 
     private void giveSuggestion() {
