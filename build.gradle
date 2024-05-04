@@ -48,6 +48,21 @@ dependencies {
     // https://mvnrepository.com/artifact/com.opencsv/opencsv
     implementation group: 'com.opencsv', name: 'opencsv', version: '5.9'
 
+    //Moneyball Smile Dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    // https://mvnrepository.com/artifact/com.github.haifengl/smile-core
+    implementation group: 'com.github.haifengl', name: 'smile-core', version: '2.0.0'
+// https://mvnrepository.com/artifact/tech.tablesaw/tablesaw-core
+    implementation group: 'tech.tablesaw', name: 'tablesaw-core', version: '0.42.0'
+// https://mvnrepository.com/artifact/tech.tablesaw/tablesaw-jsplot
+    implementation group: 'tech.tablesaw', name: 'tablesaw-jsplot', version: '0.42.0'
+
+    // https://mvnrepository.com/artifact/org.bytedeco/javacpp
+    implementation group: 'org.bytedeco', name: 'javacpp-platform', version: '1.5.10'
+// https://mvnrepository.com/artifact/org.bytedeco/openblas
+    implementation group: 'org.bytedeco', name: 'openblas-platform', version: '0.3.26-1.5.10'
+
 
 }
 
