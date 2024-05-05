@@ -3,6 +3,7 @@ package com.example.application.views;
 import com.example.application.Card;
 import com.example.application.InitialPredictionOutcome;
 import com.example.application.Suggestion;
+import com.example.application.expectedBet;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
@@ -59,6 +60,7 @@ public class MainLayout extends VerticalLayout {
     private Table data;
     private RandomForest RF1;
     private Table simulatedData;
+    private Table simulatedBetData;
     private HorizontalLayout HLforSmileStuff = new HorizontalLayout();
     private HorizontalLayout HLforSplitSmileStuff = new HorizontalLayout();
     private HorizontalLayout HLforSuggestion = new HorizontalLayout();
@@ -76,10 +78,12 @@ public class MainLayout extends VerticalLayout {
     private String splitSuggestionValue;
     private String splitPredictionValue;
     private HorizontalLayout splitHandDealt = new HorizontalLayout();
+    private H4 unitMultiplierText = new H4();
+    private H4 recommendedBetText = new H4();
+    private H4 expectedBankrollText = new H4();
 
     /*
     TO DO:
-    - add all the smile stuff near top
     - figure out how to limit bet amt to 1-300
     - dealer hits on soft 17
     - when split hand busts but original stays, make to where dealerHits() executes
@@ -102,6 +106,10 @@ public class MainLayout extends VerticalLayout {
         HLwithStartButton.setWidthFull();
         HLwithStartButton.add(startGameButton);
         add(HLwithStartButton);
+
+        // add estimated wait time message HorizontalLayout next to start button
+        HorizontalLayout HLforWaitTime = new HorizontalLayout();
+        HLwithStartButton.add(HLforWaitTime);
 
         // add SMILE stuff to HorizontalLayout next to start button
         HLwithStartButton.add(HLforSmileStuff);
@@ -149,6 +157,10 @@ public class MainLayout extends VerticalLayout {
         trueCountText = new H4("True Count: " + trueCount);
         hLCountTexts.add(runCountText, trueCountText);
 
+        // estimated wait time message
+        H4 estimatedWaitTimeText = new H4("Estimated Time to Load: 1 min");
+        HLforWaitTime.add(estimatedWaitTimeText);
+
         // clickListener for startGameButton
         startGameButton.addClickListener(event -> {
 
@@ -175,6 +187,9 @@ public class MainLayout extends VerticalLayout {
             // process data for InitialPredictionOutcome
             simulatedData = InitialPredictionOutcome.readData();
 
+            // process data for expectedBet
+            simulatedBetData = expectedBet.readEData();
+
             // add text to HLforSuggestion to show suggestion
             HLforSuggestion.removeAll();
             suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
@@ -184,6 +199,9 @@ public class MainLayout extends VerticalLayout {
             HLforOutcomePrediction.removeAll();
             outcomePredictionText = new H4(String.format("Initial Hand Outcome Prediction: %s", predictionValue));
             HLforOutcomePrediction.add(outcomePredictionText);
+
+            // remove estimated wait time message
+            HLwithStartButton.remove(HLforWaitTime);
 
         });
 
@@ -809,7 +827,7 @@ public class MainLayout extends VerticalLayout {
 
                 // update text on split hand suggestion
                 HLforSplitSuggestion.removeAll();
-                splitSuggestionText = new H5(String.format("Split Suggested Action: %s", "Next Hand"));
+                splitSuggestionText = new H5(String.format("Split Suggested Action: %s", "Press Stand"));
                 HLforSplitSuggestion.add(splitSuggestionText);
             }
 
@@ -983,6 +1001,58 @@ public class MainLayout extends VerticalLayout {
             HLforSplitSuggestion.removeAll(); HLforSplitOutcomePrediction.removeAll();
 
         });
+
+        // implement the expectedBet
+
+        // VerticalLayout to store everything
+        VerticalLayout VLforExpectedBet = new VerticalLayout();
+        add(VLforExpectedBet);
+
+        // add header to section
+        H2 expectedBetHeader = new H2("Bet Size Resources");
+        VLforExpectedBet.add(expectedBetHeader);
+
+        // IntegerField for number of hands wanted to forecast ahead
+        IntegerField handsForecastedField = new IntegerField("Number of Hands to Forecast Ahead", "Enter Positive Integer");
+        handsForecastedField.setMin(0);
+        handsForecastedField.getElement().getStyle().set("width", "250px");
+        VLforExpectedBet.add(handsForecastedField);
+
+        // button to generate bet multiplier, recommended bet size, and bankroll after whatever number of hands inputted
+        Button expectedBetButton = new Button("Calculate Recommended Bet Size");
+        VLforExpectedBet.add(expectedBetButton);
+
+        // HorizontalLayout to output info to
+        VerticalLayout VLforExpectedBetOutput = new VerticalLayout();
+        VLforExpectedBet.add(VLforExpectedBetOutput);
+
+        // click listener for expectedBetButton
+        expectedBetButton.addClickListener(event -> {
+
+            // make sure there is a hand amount entered
+            if (!handsForecastedField.isEmpty()) {
+
+                // get needed values from fields
+                int handsForcastedValue = handsForecastedField.getValue();
+                int betValue = betAmtDropdown.getValue();
+
+                // calculate values
+                double betMultiplier = expectedBet.calcMultiplier(simulatedBetData, trueCount);
+                double expectedBankroll = expectedBet.calcExpBank(simulatedBetData, betValue, handsForcastedValue, trueCount);
+                int recommendedBetAmt = expectedBet.calcRecBet(simulatedBetData, trueCount, betValue);
+
+                // print results
+                VLforExpectedBetOutput.removeAll();
+                unitMultiplierText = new H4("Recommended Bet Multiplier for Next " + handsForcastedValue + " hands: "
+                        + betMultiplier + "x");
+                recommendedBetText = new H4("Recommended Bet Size Using Multiplier for Next " +
+                        handsForcastedValue + " hands: $" + recommendedBetAmt);
+                expectedBankrollText = new H4(String.format("Expected Bankroll After %d hands: $%.2f",
+                        handsForcastedValue, expectedBankroll));
+                VLforExpectedBetOutput.add(unitMultiplierText, recommendedBetText, expectedBankrollText);
+            }
+        });
+
     }
 
     private void giveOutcomePrediction() {
