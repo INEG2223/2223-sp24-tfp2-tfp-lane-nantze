@@ -97,9 +97,14 @@ public class MainLayout extends VerticalLayout {
 
         // add SMILE stuff to HorizontalLayout next to start button
         HLwithStartButton.add(HLforSmileStuff);
+        HLforSmileStuff.setWidthFull();
 
         // HorizontalLayout for 3 smile things added to HLforSmileStuff
         HLforSmileStuff.add(HLforSuggestion, HLforOutcomePrediction, HLforExpectedBet);
+
+        // set sizes of HorizontalLayouts for smile stuff
+        HLforSuggestion.setWidth("20%");
+        HLforOutcomePrediction.setWidth("30%");
 
         // player's balance (changes after every hand)
         // start at $0
