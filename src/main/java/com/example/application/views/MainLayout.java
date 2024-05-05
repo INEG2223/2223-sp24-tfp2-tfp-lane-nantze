@@ -60,19 +60,26 @@ public class MainLayout extends VerticalLayout {
     private RandomForest RF1;
     private Table simulatedData;
     private HorizontalLayout HLforSmileStuff = new HorizontalLayout();
+    private HorizontalLayout HLforSplitSmileStuff = new HorizontalLayout();
     private HorizontalLayout HLforSuggestion = new HorizontalLayout();
+    private HorizontalLayout HLforSplitSuggestion = new HorizontalLayout();
     private H4 suggestionText = new H4();
+    private H5 splitSuggestionText = new H5();
     private HorizontalLayout HLforExpectedBet = new HorizontalLayout();
     private H4 expectedBetText = new H4();
     private HorizontalLayout HLforOutcomePrediction = new HorizontalLayout();
     private H4 outcomePredictionText = new H4();
+    private HorizontalLayout HLforSplitOutcomePrediction = new HorizontalLayout();
+    private H5 splitOutcomePredictionText = new H5();
     private String suggestionValue;
     private String predictionValue;
+    private String splitSuggestionValue;
+    private String splitPredictionValue;
+    private HorizontalLayout splitHandDealt = new HorizontalLayout();
 
     /*
     TO DO:
     - add all the smile stuff near top
-    - add suggestion for split hand
     - figure out how to limit bet amt to 1-300
     - dealer hits on soft 17
     - when split hand busts but original stays, make to where dealerHits() executes
@@ -92,6 +99,7 @@ public class MainLayout extends VerticalLayout {
 
         // add Start Game button to HorizontalLayout
         HorizontalLayout HLwithStartButton = new HorizontalLayout();
+        HLwithStartButton.setWidthFull();
         HLwithStartButton.add(startGameButton);
         add(HLwithStartButton);
 
@@ -157,7 +165,7 @@ public class MainLayout extends VerticalLayout {
             betAmount = 0; doubleOrNot = false; splitOrNot = false;
             splitBJ = false; splitDoubleOrNot = false; numPlayerAces = 0;
             numDealerAces = 0; numSplitAces = 0; numHands = 0; suggestionValue = "";
-            predictionValue = "";
+            predictionValue = ""; splitSuggestionValue = ""; splitPredictionValue = "";
 
             // process data for RandomForest
             data = Suggestion.dataProcessing();
@@ -203,11 +211,20 @@ public class MainLayout extends VerticalLayout {
 
         // VerticalLayout to hold split hand and split hand sum value
         VerticalLayout splitHandDealtWithHandSum = new VerticalLayout();
+        splitHandDealtWithHandSum.setWidthFull();
+        // HorizontalLayout to display action suggestion and outcome prediction
+        // add SMILE stuff to VerticalLayout above handTotal
+        splitHandDealtWithHandSum.add(HLforSplitSmileStuff);
+        HLforSplitSmileStuff.setWidthFull();
+        // HorizontalLayout for 2 smile things added to HLforSplitSmileStuff
+        HLforSplitSmileStuff.add(HLforSplitSuggestion, HLforSplitOutcomePrediction);
+        // set sizes of HorizontalLayouts for smile stuff
+        HLforSplitSuggestion.setWidth("20%");
+        HLforSplitOutcomePrediction.setWidth("30%");
         // HorizontalLayout to display split hand sum
         HorizontalLayout splitHandSumEntry = new HorizontalLayout();
         splitHandDealtWithHandSum.add(splitHandSumEntry);
         // HorizontalLayout for second hand for Split
-        HorizontalLayout splitHandDealt = new HorizontalLayout();
         splitHandDealtWithHandSum.add(splitHandDealt);
         add(splitHandDealtWithHandSum);
         if (sameCard) {
@@ -650,11 +667,22 @@ public class MainLayout extends VerticalLayout {
             // make sure cards are the same and player only has 2 cards to split
             if (sameCard && playerHandDealt.getComponentCount() == 2) {
 
-                // give suggestion on first hand and update text
-                giveSuggestion();
+                // add suggestion and outcome prediction text to HorizontalLayouts
+                splitSuggestionText = new H5("Split Suggested Action: " + splitSuggestionValue);
+                HLforSplitSuggestion.add(splitSuggestionText);
+                splitOutcomePredictionText = new H5("Split Hand Outcome Prediction: " + splitPredictionValue);
+                HLforSplitOutcomePrediction.add(splitOutcomePredictionText);
+
+                // give suggestion on first hand and update text, have to hit
                 HLforSuggestion.removeAll();
-                suggestionText = new H4(String.format("Suggested Action: %s", suggestionValue));
+                suggestionText = new H4(String.format("Suggested Action: %s", "Hit"));
                 HLforSuggestion.add(suggestionText);
+
+                // give suggestion on split hand and update text
+                giveSplitSuggestion();
+                HLforSplitSuggestion.removeAll();
+                splitSuggestionText = new H5(String.format("Split Suggested Action: %s", splitSuggestionValue));
+                HLforSplitSuggestion.add(splitSuggestionText);
 
                 // makes splitOrNot true
                 splitOrNot = true;
@@ -695,6 +723,7 @@ public class MainLayout extends VerticalLayout {
                     numPlayerAces = numPlayerAces - 1;
                     numSplitAces = numSplitAces + 1;
                 }
+
             }
         });
 
@@ -765,9 +794,31 @@ public class MainLayout extends VerticalLayout {
                 splitHandSumEntry.add(splitSumTextNew);
             }
 
+            // update win prediction if 2 cards are dealt to split hand
+            if (splitHandDealt.getComponentCount() == 2) {
+                // updates text to HLforSplitOutcomePrediction to show predicted outcome
+                giveSplitOutcomePrediction();
+                HLforSplitOutcomePrediction.removeAll();
+                splitOutcomePredictionText = new H5(String.format("Split Hand Outcome Prediction: %s", splitPredictionValue));
+                HLforSplitOutcomePrediction.add(splitOutcomePredictionText);
+            }
+
             // check split BJ
             if (splitHandSum == 21 && splitHandDealt.getComponentCount() == 2) {
                 splitBJ = true;
+
+                // update text on split hand suggestion
+                HLforSplitSuggestion.removeAll();
+                splitSuggestionText = new H5(String.format("Split Suggested Action: %s", "Next Hand"));
+                HLforSplitSuggestion.add(splitSuggestionText);
+            }
+
+            if (!splitBJ) {
+                // give suggestion on split hand and update text
+                giveSplitSuggestion();
+                HLforSplitSuggestion.removeAll();
+                splitSuggestionText = new H5(String.format("Split Suggested Action: %s", splitSuggestionValue));
+                HLforSplitSuggestion.add(splitSuggestionText);
             }
 
             // see if player split hand busted
@@ -897,7 +948,7 @@ public class MainLayout extends VerticalLayout {
             BJ = false; doubleOrNot = false; splitOrNot = false;
             splitBJ = false; splitDoubleOrNot = false; numSplitAces = 0;
             numPlayerAces = 0; numDealerAces = 0; suggestionValue = "";
-            predictionValue = "";
+            predictionValue = ""; splitSuggestionValue = ""; splitPredictionValue = "";
 
             // clear split hands from HorizontalLayouts
             splitHandDealt.removeAll(); splitButtonsLayout.removeAll();
@@ -928,6 +979,9 @@ public class MainLayout extends VerticalLayout {
             outcomePredictionText = new H4(String.format("Initial Hand Outcome Prediction: %s", predictionValue));
             HLforOutcomePrediction.add(outcomePredictionText);
 
+            // resets split smile stuff
+            HLforSplitSuggestion.removeAll(); HLforSplitOutcomePrediction.removeAll();
+
         });
     }
 
@@ -936,6 +990,14 @@ public class MainLayout extends VerticalLayout {
         // Are we predicted to Win, Lose, or Push current hand?
         double winPredictionDouble = InitialPredictionOutcome.winPred(simulatedData, dealerHandSum, handSum);
         predictionValue = InitialPredictionOutcome.handResult(winPredictionDouble);
+
+    }
+
+    private void giveSplitOutcomePrediction() {
+
+        // Are we predicted to Win, Lose, or Push current hand?
+        double splitWinPredictionDouble = InitialPredictionOutcome.winPred(simulatedData, dealerHandSum, splitHandSum);
+        splitPredictionValue = InitialPredictionOutcome.handResult(splitWinPredictionDouble);
 
     }
 
@@ -996,6 +1058,28 @@ public class MainLayout extends VerticalLayout {
                 }
             }
 
+        }
+    }
+
+    private void giveSplitSuggestion() {
+
+        // call makeSuggestion() method and update suggestionValue
+        splitSuggestionValue = Suggestion.makeSuggestion(RF1, dealerHandSum, splitHandSum, runCount, trueCount);
+
+        // convert letters into words
+        if (splitSuggestionValue.equals("D")) {
+            splitSuggestionValue = "Double";
+        }
+        else if (splitSuggestionValue.equals("H")) {
+            splitSuggestionValue = "Hit";
+        }
+        else {
+            splitSuggestionValue = "Stand";
+        }
+
+        // logic for double, can only double on third card
+        if (splitHandDealt.getComponentCount() != 2 && splitSuggestionValue.equals("Double")) {
+            splitSuggestionValue = "Hit";
         }
     }
 
@@ -1239,6 +1323,11 @@ public class MainLayout extends VerticalLayout {
             // add cards to dealer
             // dealerHits();
 
+            // update text on split hand suggestion
+            HLforSplitSuggestion.removeAll();
+            splitSuggestionText = new H5(String.format("Split Suggested Action: %s", "Next Hand"));
+            HLforSplitSuggestion.add(splitSuggestionText);
+
             // add card to replace face down card
             // add card to dealerHandDealt
             String value = deck.get(0).getValue();
@@ -1454,6 +1543,14 @@ public class MainLayout extends VerticalLayout {
         HLforSuggestion.removeAll();
         suggestionText = new H4(String.format("Suggested Action: %s", "Next Hand"));
         HLforSuggestion.add(suggestionText);
+
+        // if player split, update suggestion to next hand
+        if (splitOrNot) {
+            // update text on split hand suggestion
+            HLforSplitSuggestion.removeAll();
+            splitSuggestionText = new H5(String.format("Split Suggested Action: %s", "Next Hand"));
+            HLforSplitSuggestion.add(splitSuggestionText);
+        }
 
         if (!splitOrNot) {
             // checks if player won, lost, or pushed
