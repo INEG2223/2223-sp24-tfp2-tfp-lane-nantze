@@ -5,20 +5,16 @@ import com.example.application.InitialPredictionOutcome;
 import com.example.application.Suggestion;
 import com.example.application.expectedBet;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.data.validator.IntegerRangeValidator;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.Theme;
 import smile.classification.RandomForest;
 import tech.tablesaw.api.Table;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 @Route("")
 public class MainLayout extends VerticalLayout {
@@ -90,6 +86,9 @@ public class MainLayout extends VerticalLayout {
      */
 
     public MainLayout() {
+
+        this.getElement().getStyle().set("background-image", "url('images/blackjackTable.jpg')");
+        this.getElement().getStyle().set("background-size", "cover");
 
         // page header
         H1 header = new H1("Blackjack Simulator");
