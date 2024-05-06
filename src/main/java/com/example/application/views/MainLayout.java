@@ -474,13 +474,11 @@ public class MainLayout extends VerticalLayout {
         // HorizontalLayout for bet Buttons
         HorizontalLayout hL2 = new HorizontalLayout();
         hL2.add(confirmBetButton);
-        // MAKE TO WHERE hL2 or hL3 ONLY SHOWS US
         add(hL2);
 
         // HorizontalLayout for action Buttons
         HorizontalLayout hL3 = new HorizontalLayout();
         hL3.add(hitButton, standButton, doubleButton, splitButton);
-        // MAKE TO WHERE hL2 or hL3 ONLY SHOWS US
         add(hL3);
 
         // HorizontalLayout for split action Buttons
@@ -880,6 +878,9 @@ public class MainLayout extends VerticalLayout {
         splitButton.addClickListener(event -> {
             // make sure cards are the same and player only has 2 cards to split
             if (sameCard && playerHandDealt.getComponentCount() == 2) {
+
+                // turn sameCard to false if split already
+                sameCard = false;
 
                 // add suggestion and outcome prediction text to HorizontalLayouts
                 splitSuggestionText = new H5("Split Suggested Action: " + splitSuggestionValue);
@@ -1300,7 +1301,7 @@ public class MainLayout extends VerticalLayout {
         }
 
         // split logic
-        if (playerHandDealt.getComponentCount() != 2) {
+        if (playerHandDealt.getComponentCount() == 2) {
             if ((handSum == 4 || handSum == 6) && sameCard) {
                 if (dealerHandSum == 2 || dealerHandSum == 3 || dealerHandSum == 4
                         || dealerHandSum == 5 || dealerHandSum == 6 || dealerHandSum == 7) {
@@ -1440,6 +1441,9 @@ public class MainLayout extends VerticalLayout {
         reshuffleDeck();
     }
 
+    /**
+     * Gives the result of the split (second) hand
+     */
     private void splitWinLoseOrPush() {
 
         // win, loss, or push logic for split hand
@@ -1539,7 +1543,7 @@ public class MainLayout extends VerticalLayout {
     }
 
     /**
-     * Gives the result of the split (second) hand
+     * Deals cards to dealer after player gets blackjack
      */
     private void playerBlackJack() {
 
