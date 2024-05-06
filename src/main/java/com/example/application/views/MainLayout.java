@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.Theme;
 import smile.classification.RandomForest;
@@ -87,8 +88,13 @@ public class MainLayout extends VerticalLayout {
 
     public MainLayout() {
 
-        this.getElement().getStyle().set("background-image", "url('images/blackjackTable.jpg')");
-        this.getElement().getStyle().set("background-size", "cover");
+        //Setting colors/themes
+            /* Cite/Motivation to exploring to find .setBackgroundColor
+                 https://stackoverflow.com/questions/54372971/vaadin-flow-textfield-how-dynamically-change-font-color
+             */
+
+        getElement().getStyle().setBackgroundColor("#234F1E");
+
 
         // page header
         H1 header = new H1("Blackjack Simulator");
