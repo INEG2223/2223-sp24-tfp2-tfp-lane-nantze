@@ -5,21 +5,23 @@ import com.example.application.InitialPredictionOutcome;
 import com.example.application.Suggestion;
 import com.example.application.expectedBet;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.Theme;
 import smile.classification.RandomForest;
 import tech.tablesaw.api.Table;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Creates a viewer-friendly user interface that allows for a blackjack game to be played
+ */
 @Route("")
 public class MainLayout extends VerticalLayout {
-
+    
     private ArrayList<Card> deck = new ArrayList<>();
     private int runCount;
     private int trueCount;
@@ -86,11 +88,17 @@ public class MainLayout extends VerticalLayout {
     - when split hand busts but original stays, make to where dealerHits() executes
      */
 
+    /**
+     * Formatting of the user interface
+     */
     public MainLayout() {
 
         //Setting colors/themes
             /* Cite/Motivation to exploring to find .setBackgroundColor
                  https://stackoverflow.com/questions/54372971/vaadin-flow-textfield-how-dynamically-change-font-color
+
+               Button Coloring Cite (Vaadin Docs)
+                 https://vaadin.com/docs/latest/components/button#miscellaneous-style-variants
              */
 
         getElement().getStyle().setBackgroundColor("#234F1E");
@@ -105,6 +113,7 @@ public class MainLayout extends VerticalLayout {
 
         // add Start Game button
         Button startGameButton = new Button("Start Game");
+        startGameButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
 
         // add Start Game button to HorizontalLayout
         HorizontalLayout HLwithStartButton = new HorizontalLayout();
@@ -274,14 +283,19 @@ public class MainLayout extends VerticalLayout {
         // Button betButton = new Button("Bet");
         // starts dealing
         Button confirmBetButton = new Button("Confirm Bet");
+        confirmBetButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         // hit
         Button hitButton = new Button("Hit");
+        hitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         // stand
         Button standButton = new Button("Stand");
+        standButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         // double
         Button doubleButton = new Button("Double");
+        doubleButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         // split
         Button splitButton = new Button("Split");
+        splitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
 
         // HorizontalLayout for bet Buttons
         HorizontalLayout hL2 = new HorizontalLayout();
@@ -682,8 +696,11 @@ public class MainLayout extends VerticalLayout {
 
         // new action buttons for second hand from split
         Button hitSplitButton = new Button("Hit Second Hand");
+        hitSplitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         Button standSplitButton = new Button("Stand Second Hand");
+        standSplitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         Button doubleSplitButton = new Button("Double Second Hand");
+        doubleSplitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
 
         // splitButton clickListener
         splitButton.addClickListener(event -> {
@@ -957,6 +974,7 @@ public class MainLayout extends VerticalLayout {
         // HorizontalLayout for nextHandButton
         HorizontalLayout hL4 = new HorizontalLayout();
         Button nextHandButton = new Button("Next Hand");
+        nextHandButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         hL4.add(nextHandButton);
         add(hL4);
         // click listener for nextHandButton
@@ -1025,6 +1043,7 @@ public class MainLayout extends VerticalLayout {
 
         // button to generate bet multiplier, recommended bet size, and bankroll after whatever number of hands inputted
         Button expectedBetButton = new Button("Calculate Recommended Bet Size");
+        expectedBetButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_CONTRAST);
         VLforExpectedBet.add(expectedBetButton);
 
         // HorizontalLayout to output info to
@@ -1060,6 +1079,9 @@ public class MainLayout extends VerticalLayout {
 
     }
 
+    /**
+     * Gives the outcome for the initial (first) hand
+     */
     private void giveOutcomePrediction() {
 
         // Are we predicted to Win, Lose, or Push current hand?
@@ -1068,6 +1090,9 @@ public class MainLayout extends VerticalLayout {
 
     }
 
+    /**
+     * Gives the outcome for the split (second) hand
+     */
     private void giveSplitOutcomePrediction() {
 
         // Are we predicted to Win, Lose, or Push current hand?
@@ -1076,6 +1101,9 @@ public class MainLayout extends VerticalLayout {
 
     }
 
+    /**
+     * Gives the user a suggestion of which action he or she should take on the initial (first) hand
+     */
     private void giveSuggestion() {
 
         // call makeSuggestion() method and update suggestionValue
@@ -1136,6 +1164,9 @@ public class MainLayout extends VerticalLayout {
         }
     }
 
+    /**
+     * Gives the user a suggestion of which action he or she should take on the split (second) hand
+     */
     private void giveSplitSuggestion() {
 
         // call makeSuggestion() method and update suggestionValue
@@ -1158,6 +1189,9 @@ public class MainLayout extends VerticalLayout {
         }
     }
 
+    /**
+     * Reshuffles the deck of cards
+     */
     private void reshuffleDeck() {
 
         // we can say average number of cards dealt per hand to dealer and player is 6
@@ -1179,6 +1213,9 @@ public class MainLayout extends VerticalLayout {
         }
     }
 
+    /**
+     * Gives the result of the initial (first) hand
+     */
     private void winLoseOrPush() {
 
         // win by blackjack
@@ -1327,6 +1364,9 @@ public class MainLayout extends VerticalLayout {
         reshuffleDeck();
     }
 
+    /**
+     * Gives the result of the split (second) hand
+     */
     private void playerBlackJack() {
 
         // add card to replace face down card
@@ -1388,6 +1428,10 @@ public class MainLayout extends VerticalLayout {
         }
     }
 
+    /**
+     * Makes the decision whether the dealer busts or not
+     * @throws InterruptedException accounts for the possibility of a specific error
+     */
     private void bustOrNot() throws InterruptedException {
 
         // if we split and busted both hands
@@ -1537,6 +1581,9 @@ public class MainLayout extends VerticalLayout {
         }
     }
 
+    /**
+     * Makes the decision if the dealer hits
+     */
     private void dealerHits() {
 
         // removes back of card image if still there
@@ -1636,6 +1683,9 @@ public class MainLayout extends VerticalLayout {
         }
     }
 
+    /**
+     * Generates the deck of cards to be used
+     */
     private void deckGenerator() {
 
         deck.clear();
