@@ -21,64 +21,238 @@ import java.util.Collections;
  */
 @Route("")
 public class MainLayout extends VerticalLayout {
-    
+
+    /**
+     * A deck of cards
+     */
     private ArrayList<Card> deck = new ArrayList<>();
+    /**
+     * The run count
+     */
     private int runCount;
+    /**
+     * The true count
+     */
     private int trueCount;
+    /**
+     * The numerical sum of the values in the hand
+     */
     private int handSum;
+    /**
+     * The dealer's shown card
+     */
     private int dealerUpCard;
+    /**
+     * Formats the dealer's hand horizontally
+     */
     private HorizontalLayout dealerHandDealt = new HorizontalLayout();
+    /**
+     * Formats the player's hand horizontally
+     */
     private HorizontalLayout playerHandDealt = new HorizontalLayout();
+    /**
+     * The dealer's numerical sum of the hand
+     */
     private int dealerHandSum;
+    /**
+     * An image for the back of a card
+     */
     private Image image4 = new Image("images/back_of_card.png", "Card");
+    /**
+     * Creates an image object to be used
+     */
     private Image image1 = new Image();
+    /**
+     * Creates an image object to be used
+     */
     private Image image2 = new Image();
+    /**
+     * Creates an image object to be used
+     */
     private Image image3 = new Image();
+    /**
+     * A "True/False" value if the player's card are alike
+     */
     private boolean sameCard;
+    /**
+     * The numerical sum of the player's split (second) hand
+     */
     private int splitHandSum;
+    /**
+     * Creates a value that can be used to store card values
+     */
     private String value3;
+    /**
+     * Formats the dealer's hand sum horizontally
+     */
     private HorizontalLayout dealerHandSumEntry = new HorizontalLayout();
+    /**
+     * The player's bank balance
+     */
     private double playerBalance;
+    /**
+     * The outcome of the hand (win, loss, or push)
+     */
     private String handOutcome;
+    /**
+     * Used for formatting horizontally
+     */
     private HorizontalLayout hL1 = new HorizontalLayout();
+    /**
+     * Formatting the player's bank balance horizontally
+     */
     private H4 playerBalanceText = new H4();
+    /**
+     * Formatting the run count horizontally
+     */
     private H4 runCountText = new H4();
+    /**
+     * Formatting the true count horizontally
+     */
     private H4 trueCountText = new H4();
+    /**
+     * A "True/False" decision if blackjack has been dealt
+     */
     private boolean BJ;
+    /**
+     * The amount of the current hand's bet
+     */
     private int betAmount;
+    /**
+     * A "True/False" decision if the player double downs
+     */
     private boolean doubleOrNot;
+    /**
+     * A "True/False" decision if the player splits
+     */
     private boolean splitOrNot;
+    /**
+     * A "True/False" decision if the player splits and blackjack is dealt
+     */
     private boolean splitBJ;
+    /**
+     * A "True/False" decision if the player splits and double downs
+     */
     private boolean splitDoubleOrNot;
+    /**
+     * The number of aces the player's hand has
+     */
     private int numPlayerAces;
+    /**
+     * The number of aces the dealer's hand has
+     */
     private int numDealerAces;
+    /**
+     * The number of aces the player's split hand has
+     */
     private int numSplitAces;
+    /**
+     * Formats the counts horizontally
+     */
     private HorizontalLayout hLCountTexts = new HorizontalLayout();
+    /**
+     * Formats the player's bank balance horizontally
+     */
     private HorizontalLayout hLPlayerBalance = new HorizontalLayout();
+    /**
+     * The number of hands the user wishes to simulate
+     */
     private int numHands;
+    /**
+     * The table of data wishing to be used
+     */
     private Table data;
+    /**
+     * The RandomForest being used to give predictions and suggestions
+     */
     private RandomForest RF1;
+    /**
+     * The table of data that contains the simulated blackjack hands
+     */
     private Table simulatedData;
+    /**
+     * The table of data that contains the simulated data using the recommended bet size
+     */
     private Table simulatedBetData;
+    /**
+     * Formatting horizontally for predictions
+     */
     private HorizontalLayout HLforSmileStuff = new HorizontalLayout();
+    /**
+     * Formatting horizontally for split prediction
+     */
     private HorizontalLayout HLforSplitSmileStuff = new HorizontalLayout();
+    /**
+     * Formatting horizontally for predictions
+     */
     private HorizontalLayout HLforSuggestion = new HorizontalLayout();
+    /**
+     * Formatting horizontally for split prediction
+     */
     private HorizontalLayout HLforSplitSuggestion = new HorizontalLayout();
+    /**
+     * Text field for the suggestion to display
+     */
     private H4 suggestionText = new H4();
+    /**
+     * Text field for the split suggestion to display
+     */
     private H5 splitSuggestionText = new H5();
+    /**
+     * Formatting the expected bank balance horizontally
+     */
     private HorizontalLayout HLforExpectedBet = new HorizontalLayout();
+    /**
+     * Text field for the expected bank balance to display
+     */
     private H4 expectedBetText = new H4();
+    /**
+     * Formatting the predicted outcome horizontally
+     */
     private HorizontalLayout HLforOutcomePrediction = new HorizontalLayout();
+    /**
+     * Text field for the predicted outcome to display
+     */
     private H4 outcomePredictionText = new H4();
+    /**
+     * Formatting the split hand's predicted outcome horizontally
+     */
     private HorizontalLayout HLforSplitOutcomePrediction = new HorizontalLayout();
+    /**
+     * Text field for the split hand's predicted outcome to display
+     */
     private H5 splitOutcomePredictionText = new H5();
+    /**
+     * The suggested action
+     */
     private String suggestionValue;
+    /**
+     * The predicted outcome for the hand
+     */
     private String predictionValue;
+    /**
+     * The suggested action for the split hand
+     */
     private String splitSuggestionValue;
+    /**
+     * The prediction outcome for the split hand
+     */
     private String splitPredictionValue;
+    /**
+     * Formatting the split hand's cards horizontally
+     */
     private HorizontalLayout splitHandDealt = new HorizontalLayout();
+    /**
+     * Text field for the recommended bet multiplier to be displayed in
+     */
     private H4 unitMultiplierText = new H4();
+    /**
+     * Text field for the recommended bet to be displayed in
+     */
     private H4 recommendedBetText = new H4();
+    /**
+     * Text field for the expected bank balance to be displayed in
+     */
     private H4 expectedBankrollText = new H4();
 
     /*

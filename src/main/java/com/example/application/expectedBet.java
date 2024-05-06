@@ -15,9 +15,9 @@ public class expectedBet {
 
         Table simulatedData = readEData();
 
-        int trueCount = 0; //NEED FROM VAADIN
-        int betValue = 10; //NEED FROM VAADIN
-        int hands = 10; //NEED FROM VAADIN
+        int trueCount = 0; //Testing
+        int betValue = 10; //Testing
+        int hands = 10; //Testing
 
         double multiplier = calcMultiplier(simulatedData, trueCount);
 

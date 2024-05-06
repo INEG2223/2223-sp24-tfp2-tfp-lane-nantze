@@ -13,8 +13,8 @@ public class InitialPredictionOutcome {
 
         Table simulatedData = readData();
 
-        int playerInitial = 4; //NEED FROM VAADIN
-        int dealerUpCard = 10; //NEED FROM VAADIN
+        int playerInitial = 4; //Testing
+        int dealerUpCard = 10; //Testing
 
         double winPrediction = winPred(simulatedData, dealerUpCard, playerInitial);
 

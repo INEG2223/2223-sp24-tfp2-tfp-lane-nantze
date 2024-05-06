@@ -1,25 +1,18 @@
 package com.example.application;
 
-import oshi.util.tuples.Quartet;
 import smile.base.cart.SplitRule;
 import smile.classification.RandomForest;
-import smile.data.DataFrame;
 import smile.data.Tuple;
 import smile.data.formula.Formula;
 import smile.data.type.DataTypes;
 import smile.data.type.StructField;
 import smile.data.type.StructType;
-import smile.data.vector.BaseVector;
 import smile.validation.metric.Accuracy;
 import tech.tablesaw.api.*;
-import tech.tablesaw.columns.Column;
-import tech.tablesaw.columns.numbers.NumberColumnFormatter;
-import com.vaadin.flow.internal.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * Gives the user a suggested action (hit, stand, split, double down)
+ */
 public class Suggestion {
 
     public static void main(String[] args) {
@@ -33,6 +26,10 @@ public class Suggestion {
         System.out.println(makeSuggestion(RFModel, 3, 13, -4, 0));
     }
 
+    /**
+     * Processes the data and turns it into a table in a usable format
+     * @return A table in a usable format
+     */
     public static Table dataProcessing() {
 
         // =========================================
@@ -266,6 +263,11 @@ public class Suggestion {
         return data;
     }
 
+    /**
+     * Creates a RandomForest that can be used to give a suggested action
+     * @param data the cleaned table to be used for predictions
+     * @return A RandomForest that can be used to give a suggested action
+     */
     public static RandomForest randomForest(Table data) {
 
         // =======================================
@@ -347,6 +349,15 @@ public class Suggestion {
         return RFModel1;
     }
 
+    /**
+     * Gives the actual suggested action the user should take
+     * @param RFModel1 the RandomForest used to determine the best action
+     * @param dealer_up the dealer's shown card
+     * @param hand_sum the numerical sum of the hand
+     * @param run_count the run count of the deck
+     * @param true_count the true count of the deck
+     * @return The actual suggested action the user should take
+     */
     public static String makeSuggestion(RandomForest RFModel1, int dealer_up, int hand_sum, int run_count, int true_count) {
 
         // create Tuple
